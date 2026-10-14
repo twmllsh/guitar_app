@@ -8,6 +8,7 @@ export interface Song {
   timeSignature?: string;
   content: string; // ChordPro format
   updatedAt: number;
+  customChords?: Record<string, ChordFingering>;
 }
 
 export interface ChordLineItem {

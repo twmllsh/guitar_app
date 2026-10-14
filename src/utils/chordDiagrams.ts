@@ -63,8 +63,18 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'Bbmaj7': { chord: 'Bbmaj7', frets: ['x', 1, 3, 2, 3, 1], baseFret: 1, barre: { fret: 1, fromString: 5, toString: 1 } },
 };
 
-export function getChordFingering(chordName: string): ChordFingering | null {
+export function getChordFingering(
+  chordName: string, 
+  customChords?: Record<string, ChordFingering>
+): ChordFingering | null {
   const clean = chordName.trim();
+  
+  // 1. Check custom fingerings for this song first
+  if (customChords && customChords[clean]) {
+    return customChords[clean];
+  }
+
+  // 2. Check standard database
   if (CHORD_DATABASE[clean]) return CHORD_DATABASE[clean];
 
   // Try alias: G#m -> Abm or vice versa
@@ -77,9 +87,20 @@ export function getChordFingering(chordName: string): ChordFingering | null {
     'A#m': 'Bbm',
   };
 
-  if (aliasMap[clean] && CHORD_DATABASE[aliasMap[clean]]) {
-    return CHORD_DATABASE[aliasMap[clean]];
+  if (aliasMap[clean]) {
+    const alias = aliasMap[clean];
+    if (customChords && customChords[alias]) return customChords[alias];
+    if (CHORD_DATABASE[alias]) return CHORD_DATABASE[alias];
   }
 
   return null;
+}
+
+export function createDefaultFingering(chordName: string): ChordFingering {
+  return {
+    chord: chordName,
+    frets: ['x', 'x', 0, 0, 0, 0],
+    baseFret: 1,
+    fingers: [null, null, null, null, null, null]
+  };
 }

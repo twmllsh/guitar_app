@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Song } from './types';
+import { Song, ChordFingering } from './types';
 import { DEFAULT_SONGS } from './data/defaultSongs';
 import { ChordViewer } from './components/ChordViewer';
 import { SongEditor } from './components/SongEditor';
@@ -166,6 +166,56 @@ export const App: React.FC = () => {
     setIsKeySaveModalOpen(false);
   };
 
+  const handleSaveCustomFingering = (chordName: string, fingering: ChordFingering) => {
+    if (!activeSong) return;
+    const currentCustom = activeSong.customChords || {};
+    const updatedSong: Song = {
+      ...activeSong,
+      customChords: {
+        ...currentCustom,
+        [chordName]: fingering,
+      },
+      updatedAt: Date.now(),
+    };
+    setSongs(songs.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
+  };
+
+  const handleResetCustomFingering = (chordName: string) => {
+    if (!activeSong || !activeSong.customChords) return;
+    const nextCustom = { ...activeSong.customChords };
+    delete nextCustom[chordName];
+    const updatedSong: Song = {
+      ...activeSong,
+      customChords: nextCustom,
+      updatedAt: Date.now(),
+    };
+    setSongs(songs.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
+  };
+
+  const handleReplaceChordName = (oldChord: string, newChord: string) => {
+    if (!activeSong) return;
+    // Replace all instances of [oldChord] in content
+    const escapedOld = oldChord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\[${escapedOld}\\]`, 'g');
+    const newContent = activeSong.content.replace(regex, `[${newChord}]`);
+
+    // If custom fingerings exist for oldChord, optionally carry it over
+    let newCustom = activeSong.customChords ? { ...activeSong.customChords } : undefined;
+    if (newCustom && newCustom[oldChord]) {
+      newCustom[newChord] = { ...newCustom[oldChord], chord: newChord };
+    }
+
+    const updatedSong: Song = {
+      ...activeSong,
+      content: newContent,
+      customChords: newCustom,
+      updatedAt: Date.now(),
+    };
+
+    setSongs(songs.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
+    setSelectedChord(newChord);
+  };
+
   const handleExportSongs = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songs, null, 2));
     const downloadAnchor = document.createElement('a');
@@ -308,10 +358,14 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      {/* Chord Diagram Popup Modal */}
+      {/* Chord Diagram & Custom Fingering Popup Modal */}
       <ChordDiagramModal
         chordName={selectedChord}
+        customChords={activeSong?.customChords}
         onClose={() => setSelectedChord(null)}
+        onSaveFingering={handleSaveCustomFingering}
+        onResetFingering={handleResetCustomFingering}
+        onReplaceChordName={handleReplaceChordName}
       />
 
       {/* Key Change & Save Modal */}
