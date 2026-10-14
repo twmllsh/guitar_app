@@ -1,0 +1,11 @@
+services:
+  guitar-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: guitar-chord-app
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
