@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { X, Edit2, RotateCcw, Check, Sparkles, Sliders, Replace } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Edit2, RotateCcw, Check, Sparkles, Sliders, Replace, Music } from 'lucide-react';
 import { ChordFingering } from '../types';
 import { getChordFingering, createDefaultFingering } from '../utils/chordDiagrams';
+import { getDiatonicChords } from '../utils/chordUtils';
 
 interface Props {
   chordName: string | null;
+  currentKey?: string;
   customChords?: Record<string, ChordFingering>;
   onClose: () => void;
   onSaveFingering?: (chordName: string, fingering: ChordFingering) => void;
@@ -14,6 +16,7 @@ interface Props {
 
 export const ChordDiagramModal: React.FC<Props> = ({
   chordName,
+  currentKey = 'C',
   customChords,
   onClose,
   onSaveFingering,
@@ -33,6 +36,19 @@ export const ChordDiagramModal: React.FC<Props> = ({
   );
   const [replacementName, setReplacementName] = useState(chordName);
   const [showReplaceForm, setShowReplaceForm] = useState(false);
+
+  const diatonic = useMemo(() => {
+    return getDiatonicChords(currentKey);
+  }, [currentKey]);
+
+  // Variations of current chord root (e.g. C -> Cadd9, C7, Cmaj7, Csus4)
+  const chordVariations = useMemo(() => {
+    const rootMatch = chordName.match(/^([A-G][b#]?)/);
+    if (!rootMatch) return [];
+    const root = rootMatch[1];
+    const vars = [`${root}`, `${root}add9`, `${root}7`, `${root}maj7`, `${root}m`, `${root}m7`, `${root}sus4`];
+    return Array.from(new Set(vars)).filter((c) => c !== chordName);
+  }, [chordName]);
 
   // Sync state if chordName changes
   useEffect(() => {
@@ -323,27 +339,109 @@ export const ChordDiagramModal: React.FC<Props> = ({
                 )}
               </div>
 
-              {/* Code Replace Sub-Form */}
+              {/* Code Replace Sub-Form with Key-based Diatonic Suggestions */}
               {showReplaceForm && (
-                <div className="p-3 bg-zinc-900 border border-zinc-700 rounded-xl text-xs animate-fadeIn">
-                  <label className="block text-zinc-400 mb-1">
-                    악보 전체에서 <strong>[{chordName}]</strong>를 다른 코드로 변경:
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={replacementName}
-                      onChange={(e) => setReplacementName(e.target.value)}
-                      placeholder="예: Cadd9, C/G..."
-                      className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-2.5 py-1 text-white font-bold focus:outline-none focus:border-emerald-500"
-                    />
-                    <button
-                      onClick={handleExecuteReplace}
-                      disabled={!replacementName.trim() || replacementName.trim() === chordName}
-                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold transition-all"
-                    >
-                      변경
-                    </button>
+                <div className="p-3 bg-zinc-900 border border-zinc-700 rounded-xl text-xs space-y-2.5 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                      <Music className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>악보 내 <strong>[{chordName}]</strong> 코드 일괄 변경</span>
+                    </label>
+                    <span className="text-[10px] bg-zinc-800 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">
+                      Key {currentKey}
+                    </span>
+                  </div>
+
+                  {/* 1. Variations of current chord root */}
+                  {chordVariations.length > 0 && (
+                    <div>
+                      <span className="text-[10px] text-zinc-500 block mb-1">💡 [{chordName}]의 변형/텐션 코드:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {chordVariations.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              if (onReplaceChordName) {
+                                onReplaceChordName(chordName, c);
+                                setShowReplaceForm(false);
+                              }
+                            }}
+                            title={`클릭 시 [${chordName}]를 [${c}]로 즉시 변경`}
+                            className="px-2 py-0.5 bg-zinc-800 hover:bg-emerald-600 hover:text-white text-emerald-300 border border-emerald-500/30 rounded font-semibold text-[11px] transition-colors"
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Key Diatonic Basic Chords */}
+                  <div>
+                    <span className="text-[10px] text-zinc-500 block mb-1">🎵 Key {currentKey} 주요 다이아토닉 코드:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {diatonic.basic.filter((c) => c !== chordName).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            if (onReplaceChordName) {
+                              onReplaceChordName(chordName, c);
+                              setShowReplaceForm(false);
+                            }
+                          }}
+                          title={`클릭 시 [${chordName}]를 [${c}]로 즉시 변경`}
+                          className="px-2 py-0.5 bg-zinc-800 hover:bg-emerald-600 hover:text-white text-zinc-200 border border-zinc-700 rounded font-bold text-[11px] transition-colors"
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3. Key Diatonic Extensions */}
+                  <div>
+                    <span className="text-[10px] text-zinc-500 block mb-1">✨ 주요 확장/텐션/슬래시:</span>
+                    <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto scrollbar-thin">
+                      {diatonic.extensions.filter((c) => c !== chordName).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            if (onReplaceChordName) {
+                              onReplaceChordName(chordName, c);
+                              setShowReplaceForm(false);
+                            }
+                          }}
+                          title={`클릭 시 [${chordName}]를 [${c}]로 즉시 변경`}
+                          className="px-1.5 py-0.5 bg-zinc-800/80 hover:bg-indigo-600 hover:text-white text-zinc-300 border border-zinc-700 rounded text-[10px] font-medium transition-colors"
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Manual Text Input */}
+                  <div className="pt-1 border-t border-zinc-800">
+                    <span className="text-[10px] text-zinc-400 block mb-1">직접 입력하여 변경:</span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={replacementName}
+                        onChange={(e) => setReplacementName(e.target.value)}
+                        placeholder="예: Cadd9, C/G..."
+                        className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-2.5 py-1 text-white font-bold text-xs focus:outline-none focus:border-emerald-500"
+                      />
+                      <button
+                        onClick={handleExecuteReplace}
+                        disabled={!replacementName.trim() || replacementName.trim() === chordName}
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs transition-all"
+                      >
+                        적용
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

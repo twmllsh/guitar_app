@@ -7,7 +7,7 @@ import { AutoScroller } from './components/AutoScroller';
 import { SongListSidebar } from './components/SongListSidebar';
 import { ChordDiagramModal } from './components/ChordDiagramModal';
 import { KeySaveModal } from './components/KeySaveModal';
-import { transposeChordProContent } from './utils/chordUtils';
+import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
 import { Menu, Edit3, Eye, Maximize2, Minimize2 } from 'lucide-react';
 
 const STORAGE_KEY = 'guitar_chord_app_songs_v1';
@@ -361,6 +361,7 @@ export const App: React.FC = () => {
       {/* Chord Diagram & Custom Fingering Popup Modal */}
       <ChordDiagramModal
         chordName={selectedChord}
+        currentKey={activeSong ? transposeSingleChord(activeSong.originalKey || 'C', semitones) : 'C'}
         customChords={activeSong?.customChords}
         onClose={() => setSelectedChord(null)}
         onSaveFingering={handleSaveCustomFingering}
