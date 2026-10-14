@@ -1,0 +1,9 @@
+# 정적 프론트엔드(React Vite 빌드 결과물)만 서빙하는 내부 전용 Caddy 서버.
+# 도메인 라우팅, HTTPS 발급 및 리버스 프록시는 ~/project1/infra/caddy 의
+# 공유 Ingress(caddy-docker-proxy)가 docker-compose.yml의 라벨을 보고 처리합니다.
+:80 {
+	encode gzip zstd
+	root * /srv
+	try_files {path} /index.html
+	file_server
+}

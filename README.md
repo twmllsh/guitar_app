@@ -29,17 +29,30 @@ ChordPro 포맷 지원, 실시간 조옮김(Transpose), 자동 스크롤, 기타
 
 ---
 
-## 🐳 Docker Compose 실행 방법
+## 🐳 Docker 배포 (공유 Caddy Ingress 연동)
 
-### 1. 실행하기
+이 프로젝트는 **Nginx 대신 Caddy**를 사용하여 정적 파일을 서빙하며, `~/project1/infra/caddy`의 **공유 Caddy Ingress(caddy-docker-proxy)** 와 연동되어 자동 HTTPS 인증서 발급 및 리버스 프록시를 지원합니다.
+
+### 1. 환경 설정 (.env)
+`.env` 파일에 연결할 도메인을 지정합니다 (기본값: `guitar.ponytail.kr`):
+```bash
+cp .env.example .env
+```
+
+### 2. caddy 외부 네트워크 생성 (최초 1회 필요시)
+```bash
+docker network create caddy
+```
+
+### 3. 컨테이너 빌드 및 실행
 ```bash
 docker compose up -d --build
 ```
 
-실행 후 브라우저에서 아래 주소로 접속합니다:
-👉 **[http://localhost:3000](http://localhost:3000)**
+- **도메인 접속 (공유 Caddy Ingress 연동 시)**: `https://guitar.ponytail.kr`
+- **로컬 직접 접속**: `http://localhost:3000`
 
-### 2. 종료하기
+### 4. 컨테이너 종료
 ```bash
 docker compose down
 ```
