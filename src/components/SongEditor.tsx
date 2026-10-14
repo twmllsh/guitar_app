@@ -5,9 +5,11 @@ import {
   transposeChordProContent, 
   transposeSingleChord,
   getDiatonicChords,
-  extractUniqueChords
+  extractUniqueChords,
+  getPlayKey,
+  getSoundingKey
 } from '../utils/chordUtils';
-import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown, Music } from 'lucide-react';
+import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown, Music, KeyRound } from 'lucide-react';
 
 interface Props {
   song: Song;
@@ -78,9 +80,18 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
     }
   };
 
+  // When capo is applied, calculate the actual fingering key (Play Key)
+  // e.g. Original Key A + Capo 2 -> Play Key G
+  const playKey = useMemo(() => {
+    return getPlayKey(originalKey, capo);
+  }, [originalKey, capo]);
+
+  // Use playKey if capo is set, so the editor tools provide G-key chords instead of A-key chords
+  const activeEditKey = capo > 0 ? playKey : (originalKey || 'C');
+
   const diatonic = useMemo(() => {
-    return getDiatonicChords(originalKey);
-  }, [originalKey]);
+    return getDiatonicChords(activeEditKey);
+  }, [activeEditKey]);
 
   const usedChords = useMemo(() => {
     return extractUniqueChords(content);
@@ -91,6 +102,20 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
     const allDiatonic = new Set([...diatonic.basic, ...diatonic.extensions]);
     return usedChords.filter((c) => !allDiatonic.has(c));
   }, [diatonic, usedChords]);
+
+  // Handler to convert chords in content to Capo Play Key (shift by -capo)
+  const handleConvertChordsToCapoKey = () => {
+    if (!capo || capo <= 0) return;
+    const converted = transposeChordProContent(content, -capo);
+    setContent(converted);
+  };
+
+  // Handler to revert chords in content back to Original Sounding Key (shift by +capo)
+  const handleRevertChordsToOriginalKey = () => {
+    if (!capo || capo <= 0) return;
+    const reverted = transposeChordProContent(content, capo);
+    setContent(reverted);
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto pb-24">
@@ -176,15 +201,50 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
             className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
           />
         </div>
+
+        {/* Capo Play Key Guidance & Auto Converter Banner */}
+        {capo > 0 && (
+          <div className="col-span-2 sm:col-span-5 bg-amber-950/30 border border-amber-800/50 rounded-xl p-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold rounded-md">
+                Capo {capo}프렛 설정됨
+              </span>
+              <span className="text-zinc-200">
+                원곡 <strong>{originalKey || 'C'}</strong>키 → 실제 연주 운지: <strong className="text-emerald-400 font-mono text-sm">{playKey}</strong>키
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleConvertChordsToCapoKey}
+                title={`본문의 모든 코드를 카포 운지인 [${playKey}]키 코드로 일괄 변환합니다`}
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] shadow transition-all active:scale-95"
+              >
+                본문 코드를 [{playKey}]키 운지로 일괄 변환
+              </button>
+              <button
+                type="button"
+                onClick={handleRevertChordsToOriginalKey}
+                title={`본문의 코드를 원곡 실제 음 [${originalKey || 'C'}]키로 되돌립니다`}
+                className="px-2 py-1 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded-lg font-medium text-[11px] transition-colors"
+              >
+                원곡 코드로 복원
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Quick Chord Insertion Toolbar based on Current Key */}
+      {/* Quick Chord Insertion Toolbar based on Current Key / Capo Play Key */}
       <div className="bg-zinc-800/80 border border-zinc-700/80 rounded-t-2xl p-2.5 space-y-2 select-none">
         {/* Row 1: Key indicator & Basic Diatonic Chords */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin pb-0.5">
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-950/60 border border-emerald-800/60 rounded-lg text-emerald-300 font-bold text-xs shrink-0">
-            <Music className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Key {originalKey || 'C'}</span>
+          <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-950/70 border border-emerald-700/80 rounded-lg text-emerald-300 font-bold text-xs shrink-0 shadow-xs">
+            <Music className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>
+              {capo > 0 ? `Key ${playKey} (Capo ${capo} 운지)` : `Key ${originalKey || 'C'}`}
+            </span>
           </div>
 
           <span className="text-[11px] text-zinc-400 font-medium px-1 shrink-0">주요 화음:</span>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Song, ParsedLine } from '../types';
 import { parseChordPro } from '../utils/chordProParser';
-import { transposeChordProContent, extractUniqueChords, transposeSingleChord } from '../utils/chordUtils';
+import { transposeChordProContent, extractUniqueChords, transposeSingleChord, getPlayKey } from '../utils/chordUtils';
 
 interface Props {
   song: Song;
@@ -74,6 +74,9 @@ export const ChordViewer: React.FC<Props> = ({
             {song.capo !== undefined && song.capo > 0 && (
               <span className="px-3 py-1.5 bg-amber-950/40 border border-amber-800/60 rounded-lg text-amber-300 font-medium">
                 카포: <strong>{song.capo} 프렛</strong>
+                <span className="text-emerald-300 font-bold ml-1.5">
+                  ({getPlayKey(song.originalKey || 'C', song.capo)}키 운지)
+                </span>
               </span>
             )}
 

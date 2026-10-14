@@ -49,6 +49,24 @@ export function transposeSingleChord(chord: string, semitones: number, preferFla
 }
 
 /**
+ * Calculate the fingering key (Play Key) when capo is applied
+ * e.g., Original Key 'A' with Capo 2 -> Play in 'G' key chords (shifted -capo)
+ */
+export function getPlayKey(originalKey: string, capo: number): string {
+  if (!capo || capo <= 0) return originalKey || 'C';
+  return transposeSingleChord(originalKey || 'C', -capo);
+}
+
+/**
+ * Calculate the actual sounding key given play key and capo
+ * e.g., Play in 'G' key with Capo 2 -> Sounding Key 'A' (shifted +capo)
+ */
+export function getSoundingKey(playKey: string, capo: number): string {
+  if (!capo || capo <= 0) return playKey || 'C';
+  return transposeSingleChord(playKey || 'C', capo);
+}
+
+/**
  * Transpose all chords within ChordPro brackets [Chord]
  */
 export function transposeChordProContent(content: string, semitones: number): string {
