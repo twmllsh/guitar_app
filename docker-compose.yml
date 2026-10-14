@@ -13,6 +13,8 @@ services:
       # 공유 Caddy ingress (~/project1/infra/caddy)가 이 라벨을 감지하여
       # 도메인 HTTPS 인증서 자동 발급 및 80번 포트로 리버스 프록시합니다.
       caddy: ${DOMAIN}
+      caddy.tls: admin@ponytail.kr
+      caddy.tls.ca: https://acme.zerossl.com/v2/DV90
       caddy.reverse_proxy: "{{upstreams 80}}"
 
 networks:
