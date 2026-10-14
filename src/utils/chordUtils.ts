@@ -162,3 +162,97 @@ export function extractUniqueChords(chordProText: string): string[] {
 
   return Array.from(chords);
 }
+
+/**
+ * Returns key-specific diatonic chords and frequently used guitar chords for that key
+ */
+export function getDiatonicChords(keyString: string): { basic: string[]; extensions: string[] } {
+  const cleanKey = (keyString || 'C').trim();
+  const isMinor = cleanKey.endsWith('m') || cleanKey.endsWith('min');
+  const rootNote = cleanKey.replace(/m(in)?$/, '').trim();
+
+  const rootIndex = NOTE_TO_INDEX[rootNote];
+  if (rootIndex === undefined) {
+    // Fallback default C major
+    return {
+      basic: ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'G7'],
+      extensions: ['Cmaj7', 'Fmaj7', 'Am7', 'Dm7', 'Em7', 'Gsus4', 'Cadd9', 'G/B']
+    };
+  }
+
+  // Determine whether to prefer flat or sharp scale
+  const flatKeys = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Dm', 'Gm', 'Cm', 'Fm', 'Bbm'];
+  const preferFlats = flatKeys.includes(cleanKey);
+  const scale = preferFlats ? FLAT_SCALE : SHARP_SCALE;
+
+  const getNote = (semitonesFromRoot: number) => {
+    return scale[(rootIndex + semitonesFromRoot + 12) % 12];
+  };
+
+  if (isMinor) {
+    // Natural / Harmonic Minor intervals: 0, 2, 3, 5, 7, 8, 10
+    const i = getNote(0);
+    const ii = getNote(2);
+    const iii = getNote(3);
+    const iv = getNote(5);
+    const v = getNote(7);
+    const vi = getNote(8);
+    const vii = getNote(10);
+
+    return {
+      basic: [
+        `${i}m`,
+        `${iii}`,
+        `${iv}m`,
+        `${v}m`,
+        `${vi}`,
+        `${vii}`,
+        `${v}7`, // Harmonic minor dominant 7 (e.g. E7 in Am)
+      ],
+      extensions: [
+        `${i}m7`,
+        `${iv}m7`,
+        `${v}m7`,
+        `${iii}maj7`,
+        `${vi}maj7`,
+        `${ii}dim`,
+        `${ii}m7b5`,
+        `${v}sus4`,
+        `${i}m/G`,
+      ]
+    };
+  } else {
+    // Major Key intervals: 0, 2, 4, 5, 7, 9, 11
+    const I = getNote(0);
+    const ii = getNote(2);
+    const iii = getNote(4);
+    const IV = getNote(5);
+    const V = getNote(7);
+    const vi = getNote(9);
+    const vii = getNote(11);
+
+    return {
+      basic: [
+        `${I}`,
+        `${ii}m`,
+        `${iii}m`,
+        `${IV}`,
+        `${V}`,
+        `${vi}m`,
+        `${V}7`, // Dominant 7th (e.g. G7 in C, D7 in G)
+      ],
+      extensions: [
+        `${I}maj7`,
+        `${IV}maj7`,
+        `${vi}m7`,
+        `${ii}m7`,
+        `${iii}m7`,
+        `${V}sus4`,
+        `${I}add9`,
+        `${V}/${vii}`, // e.g. G/B in C, D/F# in G, A/C# in D
+        `${I}/${iii}`, // e.g. C/E in C, G/B in G
+      ]
+    };
+  }
+}
+

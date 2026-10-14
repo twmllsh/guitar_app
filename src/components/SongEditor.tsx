@@ -1,7 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Song } from '../types';
-import { convertTwoLineToChordPro, transposeChordProContent, transposeSingleChord } from '../utils/chordUtils';
-import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown } from 'lucide-react';
+import { 
+  convertTwoLineToChordPro, 
+  transposeChordProContent, 
+  transposeSingleChord,
+  getDiatonicChords,
+  extractUniqueChords
+} from '../utils/chordUtils';
+import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown, Music } from 'lucide-react';
 
 interface Props {
   song: Song;
@@ -72,7 +78,19 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
     }
   };
 
-  const QUICK_CHORDS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Am', 'Em', 'Dm', 'F#m', 'Bm', '7', 'maj7', 'sus4', 'add9'];
+  const diatonic = useMemo(() => {
+    return getDiatonicChords(originalKey);
+  }, [originalKey]);
+
+  const usedChords = useMemo(() => {
+    return extractUniqueChords(content);
+  }, [content]);
+
+  // Extra chords already written in content that are not in diatonic lists
+  const extraUsedChords = useMemo(() => {
+    const allDiatonic = new Set([...diatonic.basic, ...diatonic.extensions]);
+    return usedChords.filter((c) => !allDiatonic.has(c));
+  }, [diatonic, usedChords]);
 
   return (
     <div className="w-full max-w-4xl mx-auto pb-24">
@@ -160,48 +178,93 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* Quick Chord Insertion Toolbar */}
-      <div className="bg-zinc-800/70 border border-zinc-700/80 rounded-t-2xl p-2.5 flex items-center gap-1.5 overflow-x-auto select-none scrollbar-thin">
-        <span className="text-xs text-zinc-400 font-semibold px-1 whitespace-nowrap">빠른 삽입:</span>
-        {QUICK_CHORDS.map((chord) => (
-          <button
-            key={chord}
-            type="button"
-            onClick={() => insertChord(chord)}
-            className="px-2.5 py-1 text-xs font-bold bg-zinc-900 hover:bg-emerald-500 hover:text-white border border-zinc-700 text-zinc-200 rounded-lg whitespace-nowrap transition-colors"
-          >
-            {chord}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => insertChord('[]')}
-          className="px-2 py-1 text-xs font-bold bg-zinc-900 hover:bg-zinc-700 text-zinc-400 rounded-lg whitespace-nowrap"
-        >
-          [ ]
-        </button>
+      {/* Quick Chord Insertion Toolbar based on Current Key */}
+      <div className="bg-zinc-800/80 border border-zinc-700/80 rounded-t-2xl p-2.5 space-y-2 select-none">
+        {/* Row 1: Key indicator & Basic Diatonic Chords */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin pb-0.5">
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-950/60 border border-emerald-800/60 rounded-lg text-emerald-300 font-bold text-xs shrink-0">
+            <Music className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Key {originalKey || 'C'}</span>
+          </div>
 
-        <div className="h-4 w-px bg-zinc-700 mx-1 shrink-0" />
+          <span className="text-[11px] text-zinc-400 font-medium px-1 shrink-0">주요 화음:</span>
 
-        {/* Batch Transpose Tools */}
-        <div className="flex items-center gap-1 shrink-0 bg-zinc-900 px-1.5 py-0.5 rounded-lg border border-zinc-700">
-          <span className="text-[11px] text-zinc-400 font-medium">전체 조옮김:</span>
+          {diatonic.basic.map((chord) => (
+            <button
+              key={chord}
+              type="button"
+              onClick={() => insertChord(chord)}
+              title={`${chord} 코드 삽입`}
+              className="px-2.5 py-1 text-xs font-bold bg-zinc-900 hover:bg-emerald-500 hover:text-white border border-emerald-500/40 text-emerald-300 rounded-lg whitespace-nowrap transition-all active:scale-95 shadow-xs"
+            >
+              {chord}
+            </button>
+          ))}
+
           <button
             type="button"
-            onClick={() => handleBatchTranspose(-1)}
-            title="본문 전체 코드 반음 내리기 (-1)"
-            className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
+            onClick={() => insertChord('[]')}
+            title="빈 코드 브래킷 삽입"
+            className="px-2 py-1 text-xs font-bold bg-zinc-900 hover:bg-zinc-700 text-zinc-400 border border-zinc-700 rounded-lg whitespace-nowrap"
           >
-            ♭
+            [ ]
           </button>
-          <button
-            type="button"
-            onClick={() => handleBatchTranspose(1)}
-            title="본문 전체 코드 반음 올리기 (+1)"
-            className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
-          >
-            ♯
-          </button>
+
+          <div className="h-4 w-px bg-zinc-700 mx-1 shrink-0" />
+
+          {/* Batch Transpose Tools */}
+          <div className="flex items-center gap-1 shrink-0 bg-zinc-900 px-1.5 py-0.5 rounded-lg border border-zinc-700 ml-auto">
+            <span className="text-[11px] text-zinc-400 font-medium">전체 조옮김:</span>
+            <button
+              type="button"
+              onClick={() => handleBatchTranspose(-1)}
+              title="본문 전체 코드 반음 내리기 (-1)"
+              className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
+            >
+              ♭
+            </button>
+            <button
+              type="button"
+              onClick={() => handleBatchTranspose(1)}
+              title="본문 전체 코드 반음 올리기 (+1)"
+              className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
+            >
+              ♯
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Common Extensions, Slash Chords & Used Chords */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin pt-1 border-t border-zinc-800/80">
+          <span className="text-[11px] text-zinc-500 font-medium px-1 shrink-0">확장/텐션:</span>
+          {diatonic.extensions.map((chord) => (
+            <button
+              key={chord}
+              type="button"
+              onClick={() => insertChord(chord)}
+              title={`${chord} 코드 삽입`}
+              className="px-2 py-0.5 text-[11px] font-semibold bg-zinc-900/90 hover:bg-indigo-600 hover:text-white border border-zinc-700 text-zinc-300 rounded-md whitespace-nowrap transition-colors"
+            >
+              {chord}
+            </button>
+          ))}
+
+          {extraUsedChords.length > 0 && (
+            <>
+              <div className="h-3 w-px bg-zinc-700 mx-1 shrink-0" />
+              <span className="text-[11px] text-amber-500/80 font-medium px-1 shrink-0">사용 중:</span>
+              {extraUsedChords.map((chord) => (
+                <button
+                  key={chord}
+                  type="button"
+                  onClick={() => insertChord(chord)}
+                  className="px-2 py-0.5 text-[11px] font-semibold bg-zinc-900/90 hover:bg-amber-600 hover:text-white border border-amber-600/40 text-amber-300 rounded-md whitespace-nowrap transition-colors"
+                >
+                  {chord}
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
 
