@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Song, ChordFingering } from './types';
 import { DEFAULT_SONGS } from './data/defaultSongs';
 import { ChordViewer } from './components/ChordViewer';
@@ -41,6 +41,7 @@ export const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isKeySaveModalOpen, setIsKeySaveModalOpen] = useState<boolean>(false);
+  const mainScrollRef = useRef<HTMLElement>(null);
 
   // Sync songs to localStorage
   useEffect(() => {
@@ -271,7 +272,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Navigation Bar */}
         <header className="h-14 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30">
           <div className="flex items-center gap-3">
@@ -319,7 +320,7 @@ export const App: React.FC = () => {
         </header>
 
         {/* Scrollable Sheet / Editor Body */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 relative scrollbar-thin">
+        <main ref={mainScrollRef as any} className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 relative scrollbar-thin">
           {activeSong ? (
             isEditing ? (
               <SongEditor
@@ -347,6 +348,7 @@ export const App: React.FC = () => {
         {/* Floating Auto-Scroller & Performance Controls (Only in View Mode) */}
         {!isEditing && activeSong && (
           <AutoScroller
+            scrollContainerRef={mainScrollRef}
             semitones={semitones}
             onTranspose={(amount) => setSemitones((prev) => prev + amount)}
             fontSize={fontSize}

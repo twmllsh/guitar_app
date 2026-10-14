@@ -7,12 +7,10 @@ import {
   ZapOff, 
   Type, 
   Columns, 
-  ChevronUp, 
-  ChevronDown,
-  Volume2
 } from 'lucide-react';
 
 interface Props {
+  scrollContainerRef?: React.RefObject<HTMLElement | null>;
   semitones: number;
   onTranspose: (amount: number) => void;
   fontSize: number;
@@ -23,6 +21,7 @@ interface Props {
 }
 
 export const AutoScroller: React.FC<Props> = ({
+  scrollContainerRef,
   semitones,
   onTranspose,
   fontSize,
@@ -32,12 +31,12 @@ export const AutoScroller: React.FC<Props> = ({
   onOpenKeySaveModal,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(2); // 1 to 10
+  const [speed, setSpeed] = useState(3); // 1 to 8
   const [isWakeLocked, setIsWakeLocked] = useState(false);
   const wakeLockRef = useRef<any>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Auto scroll animation logic
+  // Auto scroll animation logic targeting the actual scroll container
   useEffect(() => {
     let lastTime = performance.now();
 
@@ -47,15 +46,15 @@ export const AutoScroller: React.FC<Props> = ({
       const delta = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
 
-      // speed 1 = 15px/sec, speed 5 = 50px/sec, speed 10 = 120px/sec
-      const pixelsPerSec = 10 + speed * 10;
-      window.scrollBy({
-        top: pixelsPerSec * delta,
-        behavior: 'auto'
-      });
+      const container = scrollContainerRef?.current;
+      if (!container) return;
 
-      // Stop if reached the end of the document
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 5) {
+      // Speed formula: speed 1 = 20px/s, speed 3 = 50px/s, speed 6 = 110px/s, speed 8 = 160px/s
+      const pixelsPerSec = 10 + speed * 18;
+      container.scrollTop += pixelsPerSec * delta;
+
+      // Stop if reached the end of the scroll container
+      if (container.scrollTop + container.clientHeight >= container.scrollHeight - 5) {
         setIsPlaying(false);
         return;
       }
@@ -77,7 +76,7 @@ export const AutoScroller: React.FC<Props> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, speed]);
+  }, [isPlaying, speed, scrollContainerRef]);
 
   // Screen Wake Lock API
   const toggleWakeLock = async () => {
@@ -108,54 +107,66 @@ export const AutoScroller: React.FC<Props> = ({
       const activeTag = (document.activeElement?.tagName || '').toLowerCase();
       if (activeTag === 'textarea' || activeTag === 'input') return;
 
+      const container = scrollContainerRef?.current;
+
       if (e.code === 'Space') {
         e.preventDefault();
         setIsPlaying((prev) => !prev);
       } else if (e.code === 'ArrowUp') {
-        window.scrollBy({ top: -120, behavior: 'smooth' });
+        e.preventDefault();
+        if (container) {
+          container.scrollBy({ top: -140, behavior: 'smooth' });
+        }
       } else if (e.code === 'ArrowDown') {
-        window.scrollBy({ top: 120, behavior: 'smooth' });
+        e.preventDefault();
+        if (container) {
+          container.scrollBy({ top: 140, behavior: 'smooth' });
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [scrollContainerRef]);
 
   const scrollToTop = () => {
     setIsPlaying(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (scrollContainerRef?.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-11/12 max-w-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-700/80 rounded-2xl shadow-2xl p-2.5 sm:p-3 flex items-center justify-between gap-2 sm:gap-4 transition-all">
-      {/* Play/Pause & Scroll Reset */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 w-[96%] max-w-xl bg-zinc-900/95 backdrop-blur-md border border-zinc-700/80 rounded-2xl shadow-2xl p-2 sm:p-2.5 flex items-center justify-between gap-1.5 sm:gap-3 transition-all select-none">
+      {/* 1. Play/Pause & Reset (Always fully visible, shrink-0) */}
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           title={isPlaying ? "일시정지 (Space)" : "자동 스크롤 시작 (Space)"}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 shrink-0 ${
             isPlaying 
-              ? 'bg-amber-500 hover:bg-amber-600 text-black' 
-              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+              ? 'bg-amber-500 hover:bg-amber-600 text-black shadow-amber-500/20' 
+              : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
           }`}
         >
-          {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+          {isPlaying ? <Pause className="w-4 h-4 fill-current shrink-0" /> : <Play className="w-4 h-4 fill-current shrink-0" />}
           <span className="hidden xs:inline">{isPlaying ? '정지' : '스크롤'}</span>
         </button>
 
         <button
           onClick={scrollToTop}
-          title="맨 위로 이동"
-          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          title="맨 위로 되감기"
+          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors shrink-0"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Speed Slider */}
-      <div className="flex items-center gap-2 flex-1 max-w-[140px] sm:max-w-[180px]">
-        <span className="text-xs text-zinc-400 font-medium whitespace-nowrap">속도: {speed}</span>
+      {/* 2. Speed Slider (Flexible width with min/max) */}
+      <div className="flex items-center gap-1.5 flex-1 min-w-[90px] max-w-[150px] sm:max-w-[180px]">
+        <span className="text-[11px] sm:text-xs text-zinc-400 font-medium whitespace-nowrap shrink-0">
+          속도: {speed}
+        </span>
         <input
           type="range"
           min="1"
@@ -166,19 +177,19 @@ export const AutoScroller: React.FC<Props> = ({
         />
       </div>
 
-      {/* Quick Controls: Transpose & Font & WakeLock */}
-      <div className="flex items-center gap-1 sm:gap-1.5">
-        {/* Transpose */}
-        <div className="flex items-center bg-zinc-800/80 rounded-lg border border-zinc-700 p-0.5">
+      {/* 3. Performance & Control Widgets */}
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Transpose Widget */}
+        <div className="flex items-center bg-zinc-800/90 rounded-lg border border-zinc-700 p-0.5 shrink-0">
           <button
             onClick={() => onTranspose(-1)}
             title="반음 내리기 (-1)"
-            className="px-2 py-1 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-700 rounded"
+            className="px-1.5 sm:px-2 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-700 rounded"
           >
             ♭
           </button>
           <span 
-            className={`px-1.5 text-xs font-semibold ${semitones !== 0 ? 'text-emerald-400' : 'text-zinc-400'}`}
+            className={`px-1 text-[11px] sm:text-xs font-semibold ${semitones !== 0 ? 'text-emerald-400' : 'text-zinc-400'}`}
             title="현재 조옮김 값"
           >
             {semitones > 0 ? `+${semitones}` : semitones}
@@ -186,7 +197,7 @@ export const AutoScroller: React.FC<Props> = ({
           <button
             onClick={() => onTranspose(1)}
             title="반음 올리기 (+1)"
-            className="px-2 py-1 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-700 rounded"
+            className="px-1.5 sm:px-2 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-700 rounded"
           >
             ♯
           </button>
@@ -195,7 +206,7 @@ export const AutoScroller: React.FC<Props> = ({
             <button
               onClick={onOpenKeySaveModal}
               title="이 Key로 영구 저장"
-              className="ml-1 px-1.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold flex items-center transition-colors"
+              className="ml-0.5 px-1 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold transition-colors"
             >
               저장
             </button>
@@ -203,18 +214,18 @@ export const AutoScroller: React.FC<Props> = ({
         </div>
 
         {/* Font Size Adjust */}
-        <div className="hidden sm:flex items-center bg-zinc-800/80 rounded-lg border border-zinc-700 p-0.5">
+        <div className="hidden xs:flex items-center bg-zinc-800/90 rounded-lg border border-zinc-700 p-0.5 shrink-0">
           <button
             onClick={() => onChangeFontSize(-1)}
             title="글자 축소"
-            className="px-2 py-1 text-xs text-zinc-300 hover:text-white hover:bg-zinc-700 rounded font-bold"
+            className="px-1.5 py-0.5 text-[11px] text-zinc-300 hover:text-white hover:bg-zinc-700 rounded font-bold"
           >
             A-
           </button>
           <button
             onClick={() => onChangeFontSize(1)}
             title="글자 확대"
-            className="px-2 py-1 text-xs text-zinc-300 hover:text-white hover:bg-zinc-700 rounded font-bold"
+            className="px-1.5 py-0.5 text-[11px] text-zinc-300 hover:text-white hover:bg-zinc-700 rounded font-bold"
           >
             A+
           </button>
@@ -224,18 +235,18 @@ export const AutoScroller: React.FC<Props> = ({
         <button
           onClick={onToggleTwoColumn}
           title={isTwoColumn ? "1단 세로 보기" : "2단 가로 펼쳐보기"}
-          className={`p-2 rounded-xl transition-colors hidden md:block ${
+          className={`p-1.5 sm:p-2 rounded-xl transition-colors hidden sm:block shrink-0 ${
             isTwoColumn ? 'bg-emerald-500/20 text-emerald-400' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
           }`}
         >
           <Columns className="w-4 h-4" />
         </button>
 
-        {/* Wake Lock */}
+        {/* Screen Wake Lock */}
         <button
           onClick={toggleWakeLock}
           title={isWakeLocked ? "화면 꺼짐 방지 켜짐" : "화면 꺼짐 방지 끄기"}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-1.5 sm:p-2 rounded-xl transition-colors shrink-0 ${
             isWakeLocked 
               ? 'bg-amber-500/20 text-amber-400' 
               : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
