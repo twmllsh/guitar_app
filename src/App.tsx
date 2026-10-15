@@ -150,7 +150,9 @@ export const App: React.FC = () => {
   const handleCreateNewSong = (newSong: Song) => {
     setSongs([newSong, ...songs]);
     setActiveSongId(newSong.id);
-    setIsEditing(true);
+    // 완성된 TAB 악보(기타프로 가져오기 또는 AI 스캔본)는 바로 연주/감상할 수 있도록 뷰어로 진입
+    const isReadyTabSong = newSong.sheetType === 'tab' && !!newSong.tabData && newSong.tabData.length > 250;
+    setIsEditing(!isReadyTabSong);
   };
 
   const handleApplySidebarAiGenerated = (generated: GeneratedSong) => {

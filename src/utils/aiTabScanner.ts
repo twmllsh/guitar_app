@@ -121,9 +121,10 @@ ${options?.customPrompt ? `추가 요청사항: ${options.customPrompt}` : ''}
 프렛 번호와 박자를 가능한 한 누락 없이 충실하게 마디별로 옮겨 적어주세요.`;
 
   const modelsToTry = [
-    'gemini-3.8-flash',
-    'gemini-flash-latest',
-    'gemini-3.5-flash-lite'
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-flash-latest'
   ];
 
   let lastError: Error | null = null;

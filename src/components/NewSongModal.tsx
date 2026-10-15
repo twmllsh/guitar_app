@@ -15,6 +15,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Song } from '../types';
+import * as alphaTab from '@coderline/alphatab';
 import { generateSongSheet } from '../utils/aiGenerator';
 import { scanTabFromMedia, generateTabFromTitle, DEFAULT_ALPHATEX_SAMPLE } from '../utils/aiTabScanner';
 
@@ -172,36 +173,71 @@ export const NewSongModal: React.FC<Props> = ({
       // 2-2: Guitar Pro / MusicXML File Upload
       if (tabMethod === 'gp') {
         if (!uploadFile) {
-          setError('기타프로(.gp, .gp5) 또는 MusicXML 파일을 선택해 주세요.');
+          setError('기타프로(.gp, .gp3, .gp4, .gp5, .gpx) 또는 MusicXML 파일을 선택해 주세요.');
           return;
         }
         setIsLoading(true);
         try {
           const buffer = await uploadFile.arrayBuffer();
-          // Store binary as base64 string
-          let binaryStr = '';
           const bytes = new Uint8Array(buffer);
-          const len = bytes.byteLength;
-          for (let i = 0; i < len; i++) {
-            binaryStr += String.fromCharCode(bytes[i]);
-          }
-          const base64Data = window.btoa(binaryStr);
           const cleanTitle = uploadFile.name.replace(/\.[^/.]+$/, '');
 
-          const newSong: Song = {
-            id: `song-${Date.now()}`,
-            title: title.trim() || cleanTitle,
-            artist: artist.trim() || '기타 연주',
-            originalKey: 'C',
-            tempo: 100,
-            sheetType: 'tab',
-            tabType: 'gp',
-            tabData: base64Data,
-            updatedAt: Date.now(),
-            content: `{title: ${cleanTitle}}\n# 파일에서 가져온 기타프로 악보입니다.`,
-          };
-          onCreateSong(newSong);
-          handleClose();
+          let convertedAlphaTex = '';
+          let finalTempo = 100;
+
+          try {
+            // Parse Guitar Pro binary directly via AlphaTab
+            const score = alphaTab.importer.ScoreLoader.loadScoreFromBytes(bytes);
+            if (title.trim()) score.title = title.trim();
+            if (artist.trim()) score.artist = artist.trim();
+            if (score.tempo > 0) finalTempo = score.tempo;
+
+            const exporter = new alphaTab.exporter.AlphaTexExporter();
+            const texBytes = exporter.export(score);
+            convertedAlphaTex = new TextDecoder().decode(texBytes);
+          } catch (gpParseErr) {
+            console.warn('AlphaTex direct export failed, fallback to base64 binary:', gpParseErr);
+          }
+
+          if (convertedAlphaTex) {
+            const newSong: Song = {
+              id: `song-${Date.now()}`,
+              title: title.trim() || cleanTitle,
+              artist: artist.trim() || '기타 연주',
+              originalKey: 'C',
+              tempo: finalTempo,
+              sheetType: 'tab',
+              tabType: 'alphatex',
+              tabData: convertedAlphaTex,
+              updatedAt: Date.now(),
+              content: `{title: ${title.trim() || cleanTitle}}\n# 기타프로 파일(${uploadFile.name})에서 완벽 변환된 타브 악보입니다.`,
+            };
+            onCreateSong(newSong);
+            handleClose();
+          } else {
+            // Fallback: store base64 binary
+            let binaryStr = '';
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+              binaryStr += String.fromCharCode(bytes[i]);
+            }
+            const base64Data = window.btoa(binaryStr);
+
+            const newSong: Song = {
+              id: `song-${Date.now()}`,
+              title: title.trim() || cleanTitle,
+              artist: artist.trim() || '기타 연주',
+              originalKey: 'C',
+              tempo: 100,
+              sheetType: 'tab',
+              tabType: 'gp',
+              tabData: base64Data,
+              updatedAt: Date.now(),
+              content: `{title: ${cleanTitle}}\n# 파일에서 가져온 기타프로 악보입니다.`,
+            };
+            onCreateSong(newSong);
+            handleClose();
+          }
         } catch (err: any) {
           setError('파일을 불러오지 못했습니다: ' + err.message);
         } finally {
