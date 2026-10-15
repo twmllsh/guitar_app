@@ -14,6 +14,7 @@ export interface GeneratedSong {
 export interface GenerateOptions {
   title: string;
   artist: string;
+  lyricHint?: string;
   difficulty?: 'easy' | 'original';
   additionalNotes?: string;
   apiKey?: string;
@@ -85,10 +86,17 @@ export async function generateSongSheet(options: GenerateOptions): Promise<Gener
      "tempo": 정수 BPM (예: 92),
      "strummingTip": "추천 기타 주법 한 줄 팁 (예: 16비트 슬로우 고고, 3/4박자 왈츠 아르페지오 등)",
      "chordProContent": "ChordPro 전체 텍스트 본문"
-   }`;
+   }
+   
+[가사 및 곡 일치 주의사항]:
+- 반드시 명시된 가수의 실제 발표된 원곡 가사를 사용하세요.
+- 같은 제목의 다른 노래(동음이의곡)와 혼동하지 마세요.
+- 만약 가사 힌트(첫 소절 등)가 주어졌다면, 반드시 그 가사로 시작하는 실제 노래의 가사와 코드를 작성하세요. 절대 가사를 가공하거나 엉뚱한 노래로 바꿔치기하지 마세요.`;
 
-  const userPrompt = `노래 제목: ${options.title}
+  const userPrompt = `[곡 정보]
+노래 제목: ${options.title}
 가수/아티스트: ${options.artist || '미상'}
+${options.lyricHint ? `가사 첫 소절 / 힌트: "${options.lyricHint}" (반드시 이 가사로 시작하는 노래여야 합니다)` : ''}
 ${options.additionalNotes ? `추가 요청사항: ${options.additionalNotes}` : ''}`;
 
   // Try latest supported models: gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash-lite

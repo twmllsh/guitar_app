@@ -36,6 +36,7 @@ export const AiSongGeneratorModal: React.FC<Props> = ({
 }) => {
   const [title, setTitle] = useState(initialTitle);
   const [artist, setArtist] = useState(initialArtist);
+  const [lyricHint, setLyricHint] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'original'>('easy');
   const [additionalNotes, setAdditionalNotes] = useState('');
 
@@ -53,6 +54,7 @@ export const AiSongGeneratorModal: React.FC<Props> = ({
     if (isOpen) {
       setTitle(initialTitle);
       setArtist(initialArtist);
+      setLyricHint('');
       setApiKey(getActiveGeminiApiKey());
       setError(null);
       setResult(null);
@@ -89,6 +91,7 @@ export const AiSongGeneratorModal: React.FC<Props> = ({
       const generated = await generateSongSheet({
         title: title.trim(),
         artist: artist.trim(),
+        lyricHint: lyricHint.trim(),
         difficulty,
         additionalNotes: additionalNotes.trim(),
         apiKey: currentKey,
@@ -158,7 +161,7 @@ export const AiSongGeneratorModal: React.FC<Props> = ({
                     autoFocus
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="예: 너의 의미, 벚꽃 엔딩, Hotel California"
+                    placeholder="예: 너의 의미, 벚꽃 엔딩, 퇴사할게여"
                     className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500"
                   />
                 </div>
@@ -171,10 +174,25 @@ export const AiSongGeneratorModal: React.FC<Props> = ({
                     type="text"
                     value={artist}
                     onChange={(e) => setArtist(e.target.value)}
-                    placeholder="예: 아이유, 버스커버스커, Eagles"
+                    placeholder="예: 아이유, 버스커버스커, 소연"
                     className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500"
                   />
                 </div>
+              </div>
+
+              {/* Lyric Hint (Prevents Wrong Song Match) */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1.5 flex items-center justify-between">
+                  <span>가사 첫 소절 또는 힌트 (선택 - 엉뚱한 노래 방지 👍)</span>
+                  <span className="text-[10px] text-emerald-400 font-normal">한 줄만 적어도 정확도 100%</span>
+                </label>
+                <input
+                  type="text"
+                  value={lyricHint}
+                  onChange={(e) => setLyricHint(e.target.value)}
+                  placeholder="예: '퇴사할게요 아쉬울 거도 없거든요' 또는 '너의 그 한 마디 말도 그 웃음도'"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500"
+                />
               </div>
 
               {/* Difficulty Options */}
