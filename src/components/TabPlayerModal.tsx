@@ -108,7 +108,7 @@ export const TabPlayerModal: React.FC<Props> = ({
         const settings: any = {
           core: {
             engine: 'html5',
-            useWorkers: false,
+            fontDirectory: '/font/',
           },
           player: {
             enablePlayer: true,
@@ -142,6 +142,15 @@ export const TabPlayerModal: React.FC<Props> = ({
           setTimeout(() => setStatusMessage(''), 3000);
         });
 
+        api.playerReady.on(() => {
+          setIsSoundFontLoaded(true);
+        });
+
+        // 1.5초 안전 타임아웃
+        setTimeout(() => {
+          setIsSoundFontLoaded(true);
+        }, 1500);
+
         api.playerPositionChanged.on((args) => {
           setCurrentTime(args.currentTime);
           setEndTime(args.endTime);
@@ -155,6 +164,7 @@ export const TabPlayerModal: React.FC<Props> = ({
         api.tex(alphaTexCode);
       } catch (err: any) {
         console.error('AlphaTab Init Error:', err);
+        setIsSoundFontLoaded(true);
       }
     }, 150);
 
@@ -479,24 +489,23 @@ export const TabPlayerModal: React.FC<Props> = ({
               <div className="flex items-center gap-3">
                 <button
                   onClick={handlePlayPause}
-                  disabled={!isSoundFontLoaded}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all ${
-                    !isSoundFontLoaded
-                      ? 'bg-zinc-800 text-zinc-400 cursor-wait border border-zinc-700'
-                      : isPlaying
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all active:scale-95 ${
+                    isPlaying
                       ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 scale-[1.02]'
+                      : !isSoundFontLoaded
+                      ? 'bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/40'
                       : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                   }`}
                 >
-                  {!isSoundFontLoaded ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                      <span>기타 음원 준비 중...</span>
-                    </>
-                  ) : isPlaying ? (
+                  {isPlaying ? (
                     <>
                       <Pause className="w-4 h-4 fill-current" />
                       <span>일시정지</span>
+                    </>
+                  ) : !isSoundFontLoaded ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />
+                      <span>재생하기 (음원 준비)</span>
                     </>
                   ) : (
                     <>

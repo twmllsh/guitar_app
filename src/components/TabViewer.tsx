@@ -63,7 +63,7 @@ export const TabViewer: React.FC<Props> = ({
         const settings: any = {
           core: {
             engine: 'html5',
-            useWorkers: false,
+            fontDirectory: '/font/',
           },
           player: {
             enablePlayer: true,
@@ -87,6 +87,15 @@ export const TabViewer: React.FC<Props> = ({
         api.soundFontLoaded.on(() => {
           setIsSoundFontLoaded(true);
         });
+
+        api.playerReady.on(() => {
+          setIsSoundFontLoaded(true);
+        });
+
+        // 1.5초 안전 타임아웃: 사운드폰트 로딩 대기 상태 해제
+        setTimeout(() => {
+          setIsSoundFontLoaded(true);
+        }, 1500);
 
         api.playerPositionChanged.on((args) => {
           setCurrentTime(args.currentTime);
@@ -112,6 +121,7 @@ export const TabViewer: React.FC<Props> = ({
         }
       } catch (e) {
         console.error('Failed to init AlphaTab inline:', e);
+        setIsSoundFontLoaded(true);
       }
     }, 40);
 
@@ -138,12 +148,18 @@ export const TabViewer: React.FC<Props> = ({
 
   const handlePlayPause = () => {
     if (!apiRef.current) return;
-    apiRef.current.playPause();
+    try {
+      apiRef.current.playPause();
+    } catch (e) {
+      console.warn('playPause error:', e);
+    }
   };
 
   const handleStop = () => {
     if (!apiRef.current) return;
-    apiRef.current.stop();
+    try {
+      apiRef.current.stop();
+    } catch (e) {}
   };
 
   const handleSpeedChange = (speed: number) => {
@@ -203,24 +219,23 @@ export const TabViewer: React.FC<Props> = ({
           <button
             type="button"
             onClick={handlePlayPause}
-            disabled={!isSoundFontLoaded}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all ${
-              !isSoundFontLoaded
-                ? 'bg-zinc-800 text-zinc-400 cursor-wait border border-zinc-700'
-                : isPlaying
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 ${
+              isPlaying
                 ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 scale-[1.02]'
+                : !isSoundFontLoaded
+                ? 'bg-emerald-700/80 hover:bg-emerald-600 text-emerald-100 border border-emerald-500/40'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white'
             }`}
           >
-            {!isSoundFontLoaded ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                <span>음원 준비 중...</span>
-              </>
-            ) : isPlaying ? (
+            {isPlaying ? (
               <>
                 <Pause className="w-4 h-4 fill-current" />
                 <span>일시정지</span>
+              </>
+            ) : !isSoundFontLoaded ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />
+                <span>재생하기 (음원 준비)</span>
               </>
             ) : (
               <>
