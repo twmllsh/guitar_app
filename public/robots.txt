@@ -1,0 +1,6 @@
+# robots.txt for https://guitar.ponytail.kr
+User-agent: *
+Allow: /
+
+# Sitemap Index
+Sitemap: https://guitar.ponytail.kr/sitemap.xml

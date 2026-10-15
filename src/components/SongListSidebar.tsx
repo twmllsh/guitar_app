@@ -9,7 +9,8 @@ import {
   Download, 
   Upload, 
   X,
-  FileText
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
   onDuplicateSong: (song: Song) => void;
   onExportSongs: () => void;
   onImportSongs: (file: File) => void;
+  onOpenPrivacyPolicy: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -34,6 +36,7 @@ export const SongListSidebar: React.FC<Props> = ({
   onDuplicateSong,
   onExportSongs,
   onImportSongs,
+  onOpenPrivacyPolicy,
   isOpen,
   onClose,
 }) => {
@@ -195,29 +198,42 @@ export const SongListSidebar: React.FC<Props> = ({
         </div>
 
         {/* Bottom Backup & Restore */}
-        <div className="p-3 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
-          <button
-            onClick={onExportSongs}
-            className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors py-1 px-2 rounded-lg hover:bg-zinc-800"
-            title="JSON 파일로 내보내기"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>백업 저장</span>
-          </button>
+        <div className="p-3 border-t border-zinc-800 space-y-2">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <button
+              onClick={onExportSongs}
+              className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors py-1 px-2 rounded-lg hover:bg-zinc-800"
+              title="JSON 파일로 내보내기"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>백업 저장</span>
+            </button>
 
-          <label 
-            className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors py-1 px-2 rounded-lg hover:bg-zinc-800 cursor-pointer"
-            title="JSON 백업 파일 불러오기"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span>불러오기</span>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
+            <label 
+              className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors py-1 px-2 rounded-lg hover:bg-zinc-800 cursor-pointer"
+              title="JSON 백업 파일 불러오기"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>불러오기</span>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
+            <button
+              type="button"
+              onClick={onOpenPrivacyPolicy}
+              className="hover:text-emerald-400 underline decoration-zinc-700 hover:decoration-emerald-400 transition-colors"
+            >
+              개인정보처리방침 및 문의
+            </button>
+            <span className="text-[10px] text-zinc-600">v1.2</span>
+          </div>
         </div>
       </aside>
     </>

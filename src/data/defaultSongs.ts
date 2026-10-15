@@ -60,62 +60,95 @@ It was a romantic [F#m]day Romantic [D]
 [D]낭만이라 할 [E]테죠
 
 {comment: [Outro]}
-[A]나는 낭만적인 [E]할머니가 되어서
-[F#m]뒤돌아보곤 [D]오늘 하루를
-It was a romantic [A]day [E] Romantic [F#m] [D]
-[A]La la la [E]la la la [F#m]la la [D]la [A]`
+[A]안녕히 계세요 [E]여러분
+[F#m]전 이 세상의 모든 굴레와 [D]속박을 벗어던지고
+[A]제 행복을 찾아 [E]떠납니다
+행복[F#m]하세요 [D]
+[A]  [E]  [F#m]  [D]  [A]`
   },
   {
-    id: 'song-1',
+    id: 'song-to-you-to-me',
     title: '너에게 난 나에게 넌',
     artist: '자전거 탄 풍경',
     originalKey: 'G',
     capo: 0,
-    tempo: 84,
+    tempo: 92,
     updatedAt: Date.now(),
     content: `{title: 너에게 난 나에게 넌}
 {artist: 자전거 탄 풍경}
 {key: G}
-{tempo: 84}
+{capo: 0}
+{tempo: 92}
 
 {comment: [Intro]}
-[G]  [D/F#]  [Em7]  [G/B]  [C]  [G/B]  [Am7]  [D7]
+[G]  [D/F#]  [Em7]  [Bm7]
+[C]  [G/B]  [Am7]  [D7]
 
 {comment: [Verse 1]}
-[G]너에게 난 해질녘 [D/F#]노을처럼
-[Em7]한편의 아름다운 [G/B]추억이 되고
-[C]소중했던 우리 푸[G/B]르던 날을 기억하며
-[Am7]후회없이 그림처럼 [D7]남아주기를
+[G]너에게 난 [D/F#]해질녘 [Em7]노을처럼 [Bm7]
+[C]한편의 아름[G/B]다운 추억이 [Am7]되고 [D7]
+[G]소중했던 [D/F#]우리 푸르[Em7]던 날을 기억[Bm7]하며
+[C]우- 후회[D7]없이 그림이 [G]되리
 
 {comment: [Verse 2]}
-[G]나에게 넌 내 외롭던 [D/F#]지난 시간을
-[Em7]환하게 비춰주던 [G/B]햇살이 되고
-[C]조그맣던 너의 하[G/B]얀 손 위에 빛나는
-[Am7]보석처럼 영원의 [D7]약속이 되어
+[G]나에게 넌 [D/F#]내 외롭[Em7]던 지난 시간을 [Bm7]
+[C]환하게 비춰[G/B]주던 햇살이 [Am7]되고 [D7]
+[G]조그맣던 [D/F#]너의 하얀 [Em7]손 위에 [Bm7]
+[C]빛나는 보[D7]석처럼 영원이 [G]되리
 
 {comment: [Chorus]}
-[G]너에게 난 해질녘 [D/F#]노을처럼
-[Em7]한편의 아름다운 [G/B]추억이 되고
-[C]소중했던 우리 푸[G/B]르던 날을 기억하며
-[Am7]후회없이 [D7]그림처럼 남아[G]주기를`
+[G]너에게 난 [D/F#]해질녘 [Em7]노을처럼 [Bm7]
+[C]한편의 아름[G/B]다운 추억이 [Am7]되고 [D7]
+[G]소중했던 [D/F#]우리 푸르[Em7]던 날을 기억[Bm7]하며
+[C]우- 후회[D7]없이 그림이 [G]되리`
   },
   {
-    id: 'song-2',
+    id: 'song-dust-in-the-wind',
+    title: '먼지가 되어',
+    artist: '이윤수 / 김광석',
+    originalKey: 'Am',
+    capo: 0,
+    tempo: 110,
+    updatedAt: Date.now(),
+    content: `{title: 먼지가 되어}
+{artist: 이윤수 / 김광석}
+{key: Am}
+{capo: 0}
+{tempo: 110}
+
+{comment: [Intro]}
+[Am]  [Am/G]  [Am/F#]  [F]  [E7]
+
+{comment: [Verse 1]}
+[Am]바하의 선율에 젖은 [C]날에는
+[Dm]잊었던 기억들이 [E7]되살아나고
+[Am]바람에 실려온 [C]너의 향기는
+[Dm]내 가슴속에 [E7]아픔을 더해
+
+{comment: [Chorus]}
+[Am]작은 가슴을 [G]모두 태우고
+[F]재가 되어 버린 [E7]추억조차도
+[Am]바람이 불어[G]오면 흩어져 버려
+[F]먼지가 [E7]되어 날아[Am]가리`
+  },
+  {
+    id: 'song-let-it-be',
     title: 'Let It Be',
     artist: 'The Beatles',
     originalKey: 'C',
     capo: 0,
     tempo: 72,
-    updatedAt: Date.now() - 1000,
+    updatedAt: Date.now(),
     content: `{title: Let It Be}
 {artist: The Beatles}
 {key: C}
+{capo: 0}
 {tempo: 72}
 
 {comment: [Verse 1]}
 When I [C]find myself in [G]times of trouble, [Am]Mother Mary [F]comes to me
 [C]Speaking words of [G]wisdom, let it [F]be [C]
-And in my [C]hour of darkness she is [G]standing right in [Am]front of me [F]
+And [C]in my hour of [G]darkness she is [Am]standing right in [F]front of me
 [C]Speaking words of [G]wisdom, let it [F]be [C]
 
 {comment: [Chorus]}
@@ -123,37 +156,231 @@ Let it [Am]be, let it [G]be, let it [F]be, let it [C]be
 [C]Whisper words of [G]wisdom, let it [F]be [C]
 
 {comment: [Verse 2]}
-And when the [C]broken hearted [G]people living [Am]in the world a[F]gree
+And [C]when the broken [G]hearted people [Am]living in the [F]world agree
 [C]There will be an [G]answer, let it [F]be [C]
-For though they [C]may be parted, there is [G]still a chance that [Am]they will see [F]
+For [C]though they may be [G]parted there is [Am]still a chance that [F]they will see
 [C]There will be an [G]answer, let it [F]be [C]`
   },
   {
-    id: 'song-3',
-    title: '먼지가 되어',
-    artist: '김광석',
-    originalKey: 'Am',
-    capo: 0,
+    id: 'song-iu-meaning-of-you',
+    title: '너의 의미 (Feat. 김창완)',
+    artist: '아이유 (IU)',
+    originalKey: 'E',
+    capo: 4,
     tempo: 96,
-    updatedAt: Date.now() - 2000,
-    content: `{title: 먼지가 되어}
-{artist: 김광석}
-{key: Am}
+    updatedAt: Date.now(),
+    content: `{title: 너의 의미 (Feat. 김창완)}
+{artist: 아이유 (IU)}
+{key: E}
+{capo: 4}
 {tempo: 96}
 
-{comment: [Intro]}
-[Am]  [Am/G]  [D/F#]  [F]  [E7]
+# [팁: Capo 4프렛 착용 시 C키 운지로 쉽게 연주 가능 / Transpose -4 추천]
 
 {comment: [Verse 1]}
-[Am]바하의 선율에 젖은 [Am/G]날에는
-[D/F#]잊었던 기억들이 [F]피어나[E7]고
-[Am]비라도 내리는 [Am/G]밤이면
-[D/F#]쓸쓸한 마음 가눌 [F]길이 [E7]없네
+[C]너의 그 한 마디 [Em]말도 그 웃음[F]도
+나에겐 커다란 [G]의미
+[C]너의 그 작은 눈[Em]빛도 쓸쓸한 그 [F]뒷모습도
+나에겐 힘겨운 [G]약속
 
 {comment: [Chorus]}
-[C]작은 가슴을 [G]태우며
-[Am]날아가는 [Em]어린 새처럼
-[F]날아올라 [C]먼지가 되어
-[Dm7]날아가고 [E7]싶어라`
+[C]너의 모든 것은 [Em]내게로 와
+[F]풀리지 않는 수수[G]께끼가 되네
+[C]슬픔은 간이역의 [Em]코스모스로 피고
+[F]스쳐 불어온 넌 [G]향긋한 바람
+[C]나 이제 뭉게구름 [Em]타고
+[F]하늘 높은 곳으로 [G]날아오르리라`
+  },
+  {
+    id: 'song-cherry-blossom',
+    title: '벚꽃 엔딩',
+    artist: '버스커 버스커',
+    originalKey: 'A',
+    capo: 0,
+    tempo: 120,
+    updatedAt: Date.now(),
+    content: `{title: 벚꽃 엔딩}
+{artist: 버스커 버스커}
+{key: A}
+{capo: 0}
+{tempo: 120}
+
+{comment: [Intro]}
+[Bm7]  [E7]  [Amaj7]  [F#m7]
+
+{comment: [Verse 1]}
+그대[Bm7]여 그대[E7]여 그대[Amaj7]여 [F#m7]
+오늘은 [Bm7]우리 같이 [E7]걸어요 이 거[Amaj7]리를 [F#m7]
+밤에 들[Bm7]려오는 자장[E7]노래 어떤[Amaj7]가요 [F#m7]
+몰래 들[Bm7]려오는 유행[E7]노래 어떤[Amaj7]가요 [F#m7]
+
+{comment: [Chorus]}
+바람 날[Bm7]리는 벚[E7]꽃 잎이
+울려 퍼[Amaj7]질 이 거리를 [F#m7]
+둘이 걸[Bm7]어요 [E7]
+봄바람 [Amaj7]휘날리며 [F#m7]
+흩날리는 [Bm7]벚꽃 잎이 [E7]
+울려 퍼[Amaj7]질 이 거리를 [F#m7]
+둘이 걸[Bm7]어요 [E7]  [Amaj7]`
+  },
+  {
+    id: 'song-paul-kim-every-day',
+    title: '모든 날, 모든 순간 (Every Day, Every Moment)',
+    artist: '폴킴 (Paul Kim)',
+    originalKey: 'C',
+    capo: 0,
+    tempo: 70,
+    updatedAt: Date.now(),
+    content: `{title: 모든 날, 모든 순간 (Every Day, Every Moment)}
+{artist: 폴킴 (Paul Kim)}
+{key: C}
+{capo: 0}
+{tempo: 70}
+
+{comment: [Verse 1]}
+[C]네가 없이 [G/B]웃을 수 있을[Am7]까
+생각만 해도 [Gm7]눈물[C7]이나
+[F]힘든 시간 [Em7]날 지켜[Am7]준 사람
+[Dm7]이제 내가 그댈 지킬[G7]게요
+
+{comment: [Chorus]}
+[C]갈색 머리 [G/B]날리는 그대[Am7]가
+포근히 안겨[Gm7]오는 [C7]이 밤
+[F]모든 날 [Em7]모든 순간 [Am7]함께해
+[Dm7]햇살처럼 [G7]따스했던 [C]그대여`
+  },
+  {
+    id: 'song-jannabi-for-lovers',
+    title: '주저하는 연인들을 위해',
+    artist: '잔나비',
+    originalKey: 'G',
+    capo: 0,
+    tempo: 78,
+    updatedAt: Date.now(),
+    content: `{title: 주저하는 연인들을 위해}
+{artist: 잔나비}
+{key: G}
+{capo: 0}
+{tempo: 78}
+
+{comment: [Verse 1]}
+나는 [G]읽기 쉬운 마음[D/F#]이야
+그대도 [Em7]스윽 훑고 가셔[Bm7]요
+달랠 길 [C]없는 외로운 [G/B]마음 있지
+머물다 [Am7]가요 맘대로 해[D7]요
+
+{comment: [Chorus]}
+그댄 [G]내가 그토록 [D/F#]바라던
+아침[Em7]을 열어준 사람[Bm7]
+새파란 [C]하늘에 빛나[G/B]는
+[Am7]햇살 같은 그[D7]대의 미[G]소`
+  },
+  {
+    id: 'song-leemoonse-old-love',
+    title: '옛사랑',
+    artist: '이문세',
+    originalKey: 'G',
+    capo: 0,
+    tempo: 68,
+    updatedAt: Date.now(),
+    content: `{title: 옛사랑}
+{artist: 이문세}
+{key: G}
+{capo: 0}
+{tempo: 68}
+
+{comment: [Verse 1]}
+[G]남들도 모[D/F#]르게 서성[Em7]이다 울었[Bm7]지
+[C]지나온 일[G/B]들이 가슴에 [Am7]사무쳐[D7]서
+[G]텅 빈 하늘 [D/F#]밑을 홀로 [Em7]걷는 이 마[Bm7]음
+[C]그리운 것[D7]들은 다 어디[G]로 갔나
+
+{comment: [Chorus]}
+[G]이제 그리운 [D/F#]것은 그리운 [Em7]대로 내 맘[Bm7]에 두고
+[C]서러운 일[G/B]들은 서러운 [Am7]대로 남겨[D7]둬야지
+[G]사랑이란 [D/F#]게 지겨울 [Em7]때가 있지[Bm7]만
+[C]내 마음 다 [D7]주었던 그 사[G]람`
+  },
+  {
+    id: 'song-10cm-stalker',
+    title: '스토커',
+    artist: '10cm',
+    originalKey: 'C',
+    capo: 0,
+    tempo: 75,
+    updatedAt: Date.now(),
+    content: `{title: 스토커}
+{artist: 10cm}
+{key: C}
+{capo: 0}
+{tempo: 75}
+
+{comment: [Verse 1]}
+[C]나도 알아 나의 [Em]문제가 무엇인지
+[F]난 못났고 별 볼 [G]일 없지
+[C]그 애가 나를 부[Em]끄러워하는 게
+[F]당연하지 당연[G]하지
+
+{comment: [Chorus]}
+나도 [F]알아 나의 [G]주제넘은 사랑[Em]이
+그 애를 [Am]괴롭힌다는 [Dm]걸
+빛나는 [G]별처럼 아름다운 [C]너와 [C7]
+[F]어두운 밤하[G]늘 같은 나[Em]는
+어울리지 [Am]않는다는 걸 [Dm]알아 [G7]  [C]`
+  },
+  {
+    id: 'song-eric-tears-in-heaven',
+    title: 'Tears in Heaven',
+    artist: 'Eric Clapton',
+    originalKey: 'A',
+    capo: 0,
+    tempo: 80,
+    updatedAt: Date.now(),
+    content: `{title: Tears in Heaven}
+{artist: Eric Clapton}
+{key: A}
+{capo: 0}
+{tempo: 80}
+
+{comment: [Intro]}
+[A]  [E/G#]  [F#m]  [A/E]  [D/F#]  [E7]  [A]
+
+{comment: [Verse 1]}
+[A]Would you [E/G#]know my [F#m]name [A/E]
+[D/F#]If I [A/E]saw you in [E]heaven? [E7]
+[A]Would it [E/G#]be the [F#m]same [A/E]
+[D/F#]If I [A/E]saw you in [E]heaven? [E7]
+
+{comment: [Chorus]}
+[F#m]I must be [C#m/E]strong
+[Em]And carry [F#7]on
+'Cause I [Bm7]know I don't be[E7]long
+Here in [A]heaven`
+  },
+  {
+    id: 'song-sung-heejae',
+    title: '희재',
+    artist: '성시경',
+    originalKey: 'C',
+    capo: 0,
+    tempo: 70,
+    updatedAt: Date.now(),
+    content: `{title: 희재}
+{artist: 성시경}
+{key: C}
+{capo: 0}
+{tempo: 70}
+
+{comment: [Verse 1]}
+[C]햇살은 우릴 위해 [Em]내리고
+[F]바람도 서로를 [G]감싸게 했죠
+[C]어쩌면 나보다 날 [Em]더 잘 아는
+[F]그대였기에 [G]고마웠어요
+
+{comment: [Chorus]}
+[C]그대 없는 하[G/B]루는 내게 [Am7]없던 시간들
+[F]잠시라도 그대[Em7]를 잊을 [Dm7]수 없던 나인[G7]걸
+[C]다음 세상에[G/B]도 우리 꼭 [Am7]다시 만나요
+[F]그때까지 [G]부디 안[C]녕`
   }
 ];

@@ -8,12 +8,22 @@ import { SongListSidebar } from './components/SongListSidebar';
 import { ChordDiagramModal } from './components/ChordDiagramModal';
 import { KeySaveModal } from './components/KeySaveModal';
 import { LoginModal } from './components/LoginModal';
+import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
+import { AdBanner } from './components/AdBanner';
 import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
+import { updateSongSeo } from './utils/seo';
 import { isAuthenticated, logout } from './utils/auth';
-import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock } from 'lucide-react';
+import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock, Info } from 'lucide-react';
 
 const STORAGE_KEY = 'guitar_chord_app_songs_v1';
 const ACTIVE_SONG_KEY = 'guitar_chord_app_active_song_id';
+
+// Helper to extract song ID from URL path (e.g. /song/song-let-it-be)
+const getSongIdFromPath = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const match = window.location.pathname.match(/\/song\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+};
 
 export const App: React.FC = () => {
   // Authentication State
@@ -21,22 +31,43 @@ export const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  // Load songs from localStorage
+  // Privacy Policy & About Modal
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+
+  // Load songs from localStorage and merge new default presets seamlessly
   const [songs, setSongs] = useState<Song[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: Song[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge in any newly introduced default songs without overwriting user changes
+          const existingIds = new Set(parsed.map((s) => s.id));
+          const newDefaults = DEFAULT_SONGS.filter((s) => !existingIds.has(s.id));
+          return [...parsed, ...newDefaults];
+        }
+      }
     } catch (e) {
       console.warn('Failed to parse songs from localStorage', e);
     }
     return DEFAULT_SONGS;
   });
 
+  // URL route prioritized activeSongId
   const [activeSongId, setActiveSongId] = useState<string>(() => {
+    // 1. Check URL path /song/:id
+    const urlSongId = getSongIdFromPath();
+    if (urlSongId && songs.some((s) => s.id === urlSongId)) {
+      return urlSongId;
+    }
+
+    // 2. Check saved active song
     try {
       const saved = localStorage.getItem(ACTIVE_SONG_KEY);
       if (saved && songs.some((s) => s.id === saved)) return saved;
     } catch (e) {}
+
+    // 3. Fallback to first song
     return songs[0]?.id || '';
   });
 
@@ -68,14 +99,37 @@ export const App: React.FC = () => {
     }
   }, [songs]);
 
-  // Sync activeSongId
+  // Sync activeSongId to LocalStorage, browser URL, and update SEO tags
   useEffect(() => {
-    if (activeSongId) {
-      localStorage.setItem(ACTIVE_SONG_KEY, activeSongId);
+    if (activeSong) {
+      localStorage.setItem(ACTIVE_SONG_KEY, activeSong.id);
       // Reset semitones transpose when song changes
       setSemitones(0);
+
+      // Update Document Title, OpenGraph, Meta Description, JSON-LD Schema
+      updateSongSeo(activeSong);
+
+      // Synchronize browser URL without page reload
+      const expectedPath = `/song/${activeSong.id}`;
+      if (window.location.pathname !== expectedPath) {
+        window.history.pushState({ songId: activeSong.id }, '', expectedPath);
+      }
     }
   }, [activeSongId]);
+
+  // Listen for browser back / forward navigation (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathId = getSongIdFromPath();
+      if (pathId && songs.some((s) => s.id === pathId)) {
+        setActiveSongId(pathId);
+        setIsEditing(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [songs]);
 
   const activeSong = songs.find((s) => s.id === activeSongId) || songs[0];
 
@@ -283,6 +337,7 @@ export const App: React.FC = () => {
         onDuplicateSong={(song) => requireAuth(() => handleDuplicateSong(song))}
         onExportSongs={handleExportSongs}
         onImportSongs={(file) => requireAuth(() => handleImportSongs(file))}
+        onOpenPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -364,6 +419,15 @@ export const App: React.FC = () => {
               </button>
             )}
 
+            {/* Info / Privacy Policy Button */}
+            <button
+              onClick={() => setIsPrivacyModalOpen(true)}
+              title="서비스 소개 및 개인정보처리방침"
+              className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800"
+            >
+              <Info className="w-4 h-4" />
+            </button>
+
             {/* Fullscreen Button */}
             <button
               onClick={toggleFullscreen}
@@ -385,14 +449,19 @@ export const App: React.FC = () => {
                 onCancel={() => setIsEditing(false)}
               />
             ) : (
-              <ChordViewer
-                song={activeSong}
-                semitones={semitones}
-                fontSize={fontSize}
-                isTwoColumn={isTwoColumn}
-                onChordClick={(chord) => setSelectedChord(chord)}
-                onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
-              />
+              <>
+                <ChordViewer
+                  song={activeSong}
+                  semitones={semitones}
+                  fontSize={fontSize}
+                  isTwoColumn={isTwoColumn}
+                  onChordClick={(chord) => setSelectedChord(chord)}
+                  onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
+                />
+
+                {/* Google AdSense / Sponsor Banner Slot */}
+                <AdBanner slot="guitar-sheet-bottom" className="max-w-2xl mx-auto" />
+              </>
             )
           ) : (
             <div className="flex items-center justify-center h-full text-zinc-500">
@@ -454,6 +523,12 @@ export const App: React.FC = () => {
             setPendingAction(null);
           }
         }}
+      />
+
+      {/* Privacy Policy & About Service Modal (Required for AdSense) */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
       />
     </div>
   );
