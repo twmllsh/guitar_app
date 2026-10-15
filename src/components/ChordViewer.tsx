@@ -10,6 +10,7 @@ interface Props {
   isTwoColumn: boolean;
   onChordClick: (chord: string) => void;
   onOpenKeySaveModal?: () => void;
+  onOpenTabModal?: () => void;
 }
 
 export const ChordViewer: React.FC<Props> = ({
@@ -19,6 +20,7 @@ export const ChordViewer: React.FC<Props> = ({
   isTwoColumn,
   onChordClick,
   onOpenKeySaveModal,
+  onOpenTabModal,
 }) => {
   // Transpose content before parsing
   const transposedContent = React.useMemo(() => {
@@ -84,6 +86,17 @@ export const ChordViewer: React.FC<Props> = ({
               <span className="px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-300 font-medium">
                 템포: <strong>{song.tempo} BPM</strong>
               </span>
+            )}
+
+            {onOpenTabModal && (
+              <button
+                type="button"
+                onClick={onOpenTabModal}
+                className="px-3 py-1.5 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow transition-all active:scale-95"
+                title="이 곡의 타브(TAB) 악보 및 실제 기타 사운드 연주 듣기"
+              >
+                <span>🎸 TAB 악보 & 소리 듣기</span>
+              </button>
             )}
           </div>
         </div>

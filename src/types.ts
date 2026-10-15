@@ -9,6 +9,15 @@ export interface Song {
   content: string; // ChordPro format
   updatedAt: number;
   customChords?: Record<string, ChordFingering>;
+  tabType?: 'alphatex' | 'gp' | 'musicxml';
+  tabData?: string; // AlphaTex text or base64 GuitarPro
+}
+
+export interface TabFileSource {
+  type: 'alphatex' | 'gp' | 'musicxml';
+  data: string | Uint8Array;
+  title?: string;
+  artist?: string;
 }
 
 export interface ChordLineItem {

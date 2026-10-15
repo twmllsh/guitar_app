@@ -10,12 +10,13 @@ import { KeySaveModal } from './components/KeySaveModal';
 import { LoginModal } from './components/LoginModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { AiSongGeneratorModal } from './components/AiSongGeneratorModal';
+import { TabPlayerModal } from './components/TabPlayerModal';
 import { AdBanner } from './components/AdBanner';
 import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
 import { updateSongSeo } from './utils/seo';
 import { isAuthenticated, logout } from './utils/auth';
 import { GeneratedSong } from './utils/aiGenerator';
-import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock, Info } from 'lucide-react';
+import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock, Info, Music2 } from 'lucide-react';
 
 const STORAGE_KEY = 'guitar_chord_app_songs_v1';
 const ACTIVE_SONG_KEY = 'guitar_chord_app_active_song_id';
@@ -33,9 +34,10 @@ export const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  // Privacy Policy & AI Generation Modals
+  // Privacy Policy, AI Generation & TAB Player Modals
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
   const [isSidebarAiModalOpen, setIsSidebarAiModalOpen] = useState<boolean>(false);
+  const [isTabModalOpen, setIsTabModalOpen] = useState<boolean>(false);
 
   // Load songs from localStorage and merge new default presets seamlessly
   const [songs, setSongs] = useState<Song[]>(() => {
@@ -386,6 +388,16 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* TAB Sheet & Playback Player Button */}
+            <button
+              onClick={() => setIsTabModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 shadow-sm transition-all"
+              title="타브(TAB) 악보 뷰어, 실제 소리 연주, 사진/PDF 악보 스캐너"
+            >
+              <Music2 className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>TAB 악보 & 연주</span>
+            </button>
+
             {/* View / Edit Mode Toggle (Requires Login to Edit) */}
             <button
               onClick={() => {
@@ -477,6 +489,7 @@ export const App: React.FC = () => {
                   isTwoColumn={isTwoColumn}
                   onChordClick={(chord) => setSelectedChord(chord)}
                   onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
+                  onOpenTabModal={() => setIsTabModalOpen(true)}
                 />
 
                 {/* Google AdSense / Sponsor Banner Slot */}
@@ -556,6 +569,14 @@ export const App: React.FC = () => {
         isOpen={isSidebarAiModalOpen}
         onClose={() => setIsSidebarAiModalOpen(false)}
         onApply={handleApplySidebarAiGenerated}
+      />
+
+      {/* Interactive TAB Sheet Music & Audio Player Modal */}
+      <TabPlayerModal
+        isOpen={isTabModalOpen}
+        onClose={() => setIsTabModalOpen(false)}
+        initialTitle={activeSong?.title}
+        initialArtist={activeSong?.artist}
       />
     </div>
   );
