@@ -34,3 +34,35 @@
 .animate-fadeIn {
   animation: fadeIn 0.15s ease-out forwards;
 }
+
+/* AlphaTab Player Cursor & Measure/Beat Position Highlight */
+.at-cursors {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* 현재 연주 중인 마디(Measure) 하이라이트 배경 (골드/앰버 박스) */
+.at-cursor-bar {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-left: 2px solid rgba(245, 158, 11, 0.8) !important;
+  border-right: 2px solid rgba(245, 158, 11, 0.8) !important;
+  border-radius: 4px;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
+  box-sizing: border-box;
+}
+
+/* 현재 연주 중인 박자/음표(Beat) 커서 (선명한 수직 바) */
+.at-cursor-beat {
+  background: #ef4444 !important;
+  width: 3px !important;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.9), 0 0 2px #fff;
+  z-index: 1001;
+}
+
+/* 마우스 드래그 선택 영역 */
+.at-selection div {
+  background: rgba(59, 130, 246, 0.3) !important;
+  border-radius: 2px;
+}

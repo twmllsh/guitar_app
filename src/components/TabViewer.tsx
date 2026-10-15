@@ -44,6 +44,8 @@ export const TabViewer: React.FC<Props> = ({
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [staveProfile, setStaveProfile] = useState<'Tab' | 'ScoreTab'>('Tab');
   const [rhythmMode, setRhythmMode] = useState<'bars' | 'hidden'>('bars');
+  const [currentMeasure, setCurrentMeasure] = useState<number>(1);
+  const [totalMeasures, setTotalMeasures] = useState<number>(1);
 
   const tabSource = song.tabData || DEFAULT_ALPHATEX_SAMPLE;
 
@@ -71,6 +73,8 @@ export const TabViewer: React.FC<Props> = ({
             enableCursor: true,
             enableUserInteraction: true,
             soundFont: '/soundfont/sonivox.sf2',
+            scrollElement: 'main',
+            scrollMode: alphaTab.ScrollMode.Continuous,
           },
           display: {
             staveProfile: staveProfile,
@@ -108,6 +112,20 @@ export const TabViewer: React.FC<Props> = ({
         api.playerPositionChanged.on((args) => {
           setCurrentTime(args.currentTime);
           setEndTime(args.endTime);
+          if (apiRef.current?.tickCache?.masterBars) {
+            const mb = apiRef.current.tickCache.masterBars.find(
+              (b) => args.currentTick >= b.start && args.currentTick <= b.end
+            );
+            if (mb?.masterBar) {
+              setCurrentMeasure(mb.masterBar.index + 1);
+            }
+          }
+        });
+
+        api.renderFinished.on(() => {
+          if (apiRef.current?.score?.tracks[0]?.staves[0]) {
+            setTotalMeasures(apiRef.current.score.tracks[0].staves[0].bars.length);
+          }
         });
 
         // Load content based on type (GP binary vs AlphaTex)
@@ -274,10 +292,15 @@ export const TabViewer: React.FC<Props> = ({
             <Square className="w-4 h-4" />
           </button>
 
-          <div className="text-xs font-mono text-zinc-400 pl-1">
+          <div className="text-xs font-mono text-zinc-400 pl-1 flex items-center gap-1.5">
             <span className="text-white font-semibold">{formatTime(currentTime / 1000)}</span>
-            <span className="mx-1">/</span>
+            <span className="mx-0.5">/</span>
             <span>{formatTime(endTime / 1000)}</span>
+            {totalMeasures > 1 && (
+              <span className="ml-2 px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-md text-[11px] font-bold font-sans">
+                마디 {currentMeasure} / {totalMeasures}
+              </span>
+            )}
           </div>
         </div>
 
