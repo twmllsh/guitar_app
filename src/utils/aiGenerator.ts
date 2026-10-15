@@ -51,7 +51,13 @@ export function saveCustomGeminiApiKey(key: string): void {
   }
 }
 
+import { isAuthenticated } from './auth';
+
 export async function generateSongSheet(options: GenerateOptions): Promise<GeneratedSong> {
+  if (!isAuthenticated()) {
+    throw new Error('AI 악보 생성은 관리자(슈퍼관리자) 로그인 후에만 이용하실 수 있습니다.');
+  }
+
   const apiKey = (options.apiKey || getActiveGeminiApiKey()).trim();
   if (!apiKey) {
     throw new Error('Gemini API 키가 설정되지 않았습니다. .env 파일에 등록하거나 설정에서 입력해 주세요.');

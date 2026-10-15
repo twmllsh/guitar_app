@@ -20,7 +20,9 @@ import {
   HelpCircle,
   CheckCircle2,
   Music2,
-  Gauge
+  Gauge,
+  Lock,
+  ShieldAlert
 } from 'lucide-react';
 import {
   scanTabFromMedia,
@@ -36,6 +38,8 @@ interface Props {
   initialTitle?: string;
   initialArtist?: string;
   initialAlphaTex?: string;
+  isLoggedIn?: boolean;
+  onRequireLogin?: () => void;
 }
 
 type TabMode = 'viewer' | 'scan' | 'aiGen' | 'editor';
@@ -45,7 +49,9 @@ export const TabPlayerModal: React.FC<Props> = ({
   onClose,
   initialTitle,
   initialArtist,
-  initialAlphaTex
+  initialAlphaTex,
+  isLoggedIn = false,
+  onRequireLogin,
 }) => {
   const [activeMode, setActiveMode] = useState<TabMode>('viewer');
   const [songTitle, setSongTitle] = useState(initialTitle || 'Spanish Romance (로망스)');
@@ -213,8 +219,12 @@ export const TabPlayerModal: React.FC<Props> = ({
     }
   };
 
-  // Apply AlphaTex text from editor
+  // Apply AlphaTex text from editor (requires admin)
   const handleApplyEditor = () => {
+    if (!isLoggedIn) {
+      onRequireLogin?.();
+      return;
+    }
     setAlphaTexCode(editorText);
     setActiveMode('viewer');
     if (apiRef.current) {
@@ -317,6 +327,26 @@ export const TabPlayerModal: React.FC<Props> = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const renderAuthRequiredCard = (title: string, desc: string) => (
+    <div className="w-full h-full p-4 sm:p-8 flex items-center justify-center">
+      <div className="bg-zinc-900 border border-amber-500/30 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl animate-fade-in">
+        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-7 h-7" />
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+        <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+          {desc}
+        </p>
+        <button
+          onClick={onRequireLogin}
+          className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-bold rounded-xl text-xs shadow-lg shadow-orange-500/20 transition-all active:scale-98"
+        >
+          슈퍼관리자 로그인하기
+        </button>
+      </div>
+    </div>
+  );
+
   if (!isOpen) return null;
 
   return (
@@ -368,6 +398,7 @@ export const TabPlayerModal: React.FC<Props> = ({
             >
               <Camera className="w-3.5 h-3.5" />
               <span>사진/PDF 스캔</span>
+              {!isLoggedIn && <Lock className="w-3 h-3 text-amber-400 opacity-80" />}
             </button>
             <button
               onClick={() => setActiveMode('aiGen')}
@@ -379,6 +410,7 @@ export const TabPlayerModal: React.FC<Props> = ({
             >
               <Wand2 className="w-3.5 h-3.5" />
               <span>AI 리프 생성</span>
+              {!isLoggedIn && <Lock className="w-3 h-3 text-amber-400 opacity-80" />}
             </button>
             <button
               onClick={() => {
@@ -393,6 +425,7 @@ export const TabPlayerModal: React.FC<Props> = ({
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>텍스트 편집</span>
+              {!isLoggedIn && <Lock className="w-3 h-3 text-amber-400 opacity-80" />}
             </button>
           </div>
 
@@ -563,6 +596,12 @@ export const TabPlayerModal: React.FC<Props> = ({
 
           {/* TAB 2: AI Scanner (Image / PDF to TAB) */}
           {activeMode === 'scan' && (
+            !isLoggedIn ? (
+              renderAuthRequiredCard(
+                'AI 악보 사진/PDF 스캐너 (슈퍼관리자 전용)',
+                'Gemini Vision AI를 사용한 악보 사진 및 PDF 전사 기능은 악보 작성 권한이 있는 관리자(슈퍼관리자)만 이용하실 수 있습니다.'
+              )
+            ) : (
             <div className="w-full h-full p-4 sm:p-8 overflow-y-auto max-w-3xl mx-auto flex flex-col justify-center">
               <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center gap-3 mb-4">
@@ -673,10 +712,17 @@ export const TabPlayerModal: React.FC<Props> = ({
                 </div>
               </div>
             </div>
+            )
           )}
 
           {/* TAB 3: AI Generator from Title */}
           {activeMode === 'aiGen' && (
+            !isLoggedIn ? (
+              renderAuthRequiredCard(
+                'AI 타브 악보 생성기 (슈퍼관리자 전용)',
+                'Gemini AI를 통한 기타 타브 악보 및 리프 자동 생성 기능은 슈퍼관리자 로그인 사용자만 이용하실 수 있습니다.'
+              )
+            ) : (
             <div className="w-full h-full p-4 sm:p-8 overflow-y-auto max-w-2xl mx-auto flex flex-col justify-center">
               <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center gap-3 mb-4">
@@ -778,10 +824,17 @@ export const TabPlayerModal: React.FC<Props> = ({
                 </div>
               </div>
             </div>
+            )
           )}
 
           {/* TAB 4: Text Editor (AlphaTex) */}
           {activeMode === 'editor' && (
+            !isLoggedIn ? (
+              renderAuthRequiredCard(
+                'AlphaTex 악보 에디터 (슈퍼관리자 전용)',
+                '타브 악보 직접 작성 및 수정 기능은 악보 작성 권한이 있는 관리자(슈퍼관리자)로 로그인해야 이용하실 수 있습니다.'
+              )
+            ) : (
             <div className="w-full h-full p-4 flex flex-col">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 mb-2 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
@@ -806,6 +859,7 @@ export const TabPlayerModal: React.FC<Props> = ({
                 className="flex-1 w-full bg-zinc-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-zinc-800 focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
               />
             </div>
+            )
           )}
         </div>
       </div>

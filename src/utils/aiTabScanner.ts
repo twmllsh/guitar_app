@@ -1,4 +1,5 @@
 import { getActiveGeminiApiKey } from './aiGenerator';
+import { isAuthenticated } from './auth';
 
 export interface ScanTabResult {
   title: string;
@@ -69,6 +70,10 @@ export async function scanTabFromMedia(
   file: File,
   options?: { customPrompt?: string; apiKey?: string }
 ): Promise<ScanTabResult> {
+  if (!isAuthenticated()) {
+    throw new Error('AI 악보 스캔 기능은 관리자(슈퍼관리자)로 로그인해야 이용하실 수 있습니다.');
+  }
+
   const apiKey = (options?.apiKey || getActiveGeminiApiKey()).trim();
   if (!apiKey) {
     throw new Error('Gemini API 키가 필요합니다. 설정에서 API 키를 입력하거나 .env 파일에 등록해 주세요.');
@@ -195,6 +200,10 @@ export async function generateTabFromTitle(options: {
   part?: string; // 'intro', 'solo', 'riff', 'fingerstyle'
   apiKey?: string;
 }): Promise<ScanTabResult> {
+  if (!isAuthenticated()) {
+    throw new Error('AI 타브 생성 기능은 관리자(슈퍼관리자)로 로그인해야 이용하실 수 있습니다.');
+  }
+
   const apiKey = (options.apiKey || getActiveGeminiApiKey()).trim();
   if (!apiKey) {
     throw new Error('Gemini API 키가 필요합니다.');

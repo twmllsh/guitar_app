@@ -587,6 +587,8 @@ export const App: React.FC = () => {
         initialTitle={activeSong?.title}
         initialArtist={activeSong?.artist}
         initialAlphaTex={activeSong?.tabData}
+        isLoggedIn={isLoggedIn}
+        onRequireLogin={() => requireAuth(() => {})}
       />
     </div>
   );
