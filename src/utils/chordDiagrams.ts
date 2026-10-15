@@ -6,7 +6,11 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'C7': { chord: 'C7', frets: ['x', 3, 2, 3, 1, 0], fingers: [null, 3, 2, 4, 1, null] },
   'Cmaj7': { chord: 'Cmaj7', frets: ['x', 3, 2, 0, 0, 0], fingers: [null, 3, 2, null, null, null] },
   'Cadd9': { chord: 'Cadd9', frets: ['x', 3, 2, 0, 3, 3], fingers: [null, 2, 1, null, 3, 4] },
+  'C6': { chord: 'C6', frets: ['x', 3, 2, 2, 1, 0], fingers: [null, 3, 2, 4, 1, null] },
+  'C/E': { chord: 'C/E', frets: [0, 3, 2, 0, 1, 0], fingers: [null, 3, 2, null, 1, null] },
+  'C/G': { chord: 'C/G', frets: [3, 3, 2, 0, 1, 0], fingers: [3, 4, 2, null, 1, null] },
   'Cm': { chord: 'Cm', frets: ['x', 3, 5, 5, 4, 3], baseFret: 3, barre: { fret: 3, fromString: 5, toString: 1 } },
+  'C#': { chord: 'C#', frets: ['x', 4, 6, 6, 6, 4], baseFret: 4, barre: { fret: 4, fromString: 5, toString: 1 } },
   'C#m': { chord: 'C#m', frets: ['x', 4, 6, 6, 5, 4], baseFret: 4, barre: { fret: 4, fromString: 5, toString: 1 } },
   'Csus4': { chord: 'Csus4', frets: ['x', 3, 3, 0, 1, 1], fingers: [null, 3, 4, null, 1, 1] },
 
@@ -16,6 +20,7 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'Dmaj7': { chord: 'Dmaj7', frets: ['x', 'x', 0, 2, 2, 2], fingers: [null, null, null, 1, 2, 3] },
   'Dm': { chord: 'Dm', frets: ['x', 'x', 0, 2, 3, 1], fingers: [null, null, null, 2, 3, 1] },
   'Dm7': { chord: 'Dm7', frets: ['x', 'x', 0, 2, 1, 1], fingers: [null, null, null, 2, 1, 1] },
+  'Dm7/G': { chord: 'Dm7/G', frets: [3, 'x', 0, 2, 1, 1], fingers: [3, null, null, 2, 1, 1] },
   'Dsus4': { chord: 'Dsus4', frets: ['x', 'x', 0, 2, 3, 3], fingers: [null, null, null, 1, 3, 4] },
   'D/F#': { chord: 'D/F#', frets: [2, 0, 0, 2, 3, 2], fingers: [1, null, null, 2, 4, 3] },
 
@@ -26,12 +31,14 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'Em': { chord: 'Em', frets: [0, 2, 2, 0, 0, 0], fingers: [null, 2, 3, null, null, null] },
   'Em7': { chord: 'Em7', frets: [0, 2, 2, 0, 3, 0], fingers: [null, 1, 2, null, 3, null] },
   'Esus4': { chord: 'Esus4', frets: [0, 2, 2, 2, 0, 0], fingers: [null, 2, 3, 4, null, null] },
+  'E5': { chord: 'E5', frets: [0, 2, 2, 'x', 'x', 'x'], fingers: [null, 1, 2, null, null, null] },
 
   // F family
   'F': { chord: 'F', frets: [1, 3, 3, 2, 1, 1], baseFret: 1, barre: { fret: 1, fromString: 6, toString: 1 } },
   'Fmaj7': { chord: 'Fmaj7', frets: ['x', 'x', 3, 2, 1, 0], fingers: [null, null, 3, 2, 1, null] },
   'F7': { chord: 'F7', frets: [1, 3, 1, 2, 1, 1], baseFret: 1, barre: { fret: 1, fromString: 6, toString: 1 } },
   'Fm': { chord: 'Fm', frets: [1, 3, 3, 1, 1, 1], baseFret: 1, barre: { fret: 1, fromString: 6, toString: 1 } },
+  'Fm6': { chord: 'Fm6', frets: ['x', 'x', 3, 1, 3, 1], fingers: [null, null, 3, 1, 4, 2] },
   'F#m': { chord: 'F#m', frets: [2, 4, 4, 2, 2, 2], baseFret: 2, barre: { fret: 2, fromString: 6, toString: 1 } },
   'F#m7': { chord: 'F#m7', frets: [2, 4, 2, 2, 2, 2], baseFret: 2, barre: { fret: 2, fromString: 6, toString: 1 } },
   'F#': { chord: 'F#', frets: [2, 4, 4, 3, 2, 2], baseFret: 2, barre: { fret: 2, fromString: 6, toString: 1 } },
@@ -40,6 +47,7 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'G': { chord: 'G', frets: [3, 2, 0, 0, 3, 3], fingers: [2, 1, null, null, 3, 4] },
   'G7': { chord: 'G7', frets: [3, 2, 0, 0, 0, 1], fingers: [3, 2, null, null, null, 1] },
   'Gmaj7': { chord: 'Gmaj7', frets: [3, 2, 0, 0, 0, 2], fingers: [2, 1, null, null, null, 3] },
+  'G6': { chord: 'G6', frets: [3, 2, 0, 0, 0, 0], fingers: [2, 1, null, null, null, null] },
   'Gm': { chord: 'Gm', frets: [3, 5, 5, 3, 3, 3], baseFret: 3, barre: { fret: 3, fromString: 6, toString: 1 } },
   'Gsus4': { chord: 'Gsus4', frets: [3, 2, 0, 0, 1, 3], fingers: [2, 1, null, null, 3, 4] },
   'G/B': { chord: 'G/B', frets: ['x', 2, 0, 0, 3, 3], fingers: [null, 1, null, null, 3, 4] },
@@ -50,6 +58,7 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'Amaj7': { chord: 'Amaj7', frets: ['x', 0, 2, 1, 2, 0], fingers: [null, null, 2, 1, 3, null] },
   'Am': { chord: 'Am', frets: ['x', 0, 2, 2, 1, 0], fingers: [null, null, 2, 3, 1, null] },
   'Am7': { chord: 'Am7', frets: ['x', 0, 2, 0, 1, 0], fingers: [null, null, 2, null, 1, null] },
+  'Am9': { chord: 'Am9', frets: ['x', 0, 2, 4, 1, 0], fingers: [null, null, 2, 4, 1, null] },
   'Asus4': { chord: 'Asus4', frets: ['x', 0, 2, 2, 3, 0], fingers: [null, null, 1, 2, 3, null] },
   'Asus2': { chord: 'Asus2', frets: ['x', 0, 2, 2, 0, 0], fingers: [null, null, 1, 2, null, null] },
   'Am/G': { chord: 'Am/G', frets: [3, 0, 2, 2, 1, 0], fingers: [4, null, 2, 3, 1, null] },
@@ -61,6 +70,7 @@ export const CHORD_DATABASE: Record<string, ChordFingering> = {
   'Bm7': { chord: 'Bm7', frets: ['x', 2, 4, 2, 3, 2], baseFret: 2, barre: { fret: 2, fromString: 5, toString: 1 } },
   'Bb': { chord: 'Bb', frets: ['x', 1, 3, 3, 3, 1], baseFret: 1, barre: { fret: 1, fromString: 5, toString: 1 } },
   'Bbmaj7': { chord: 'Bbmaj7', frets: ['x', 1, 3, 2, 3, 1], baseFret: 1, barre: { fret: 1, fromString: 5, toString: 1 } },
+  'Bbm': { chord: 'Bbm', frets: ['x', 1, 3, 3, 2, 1], baseFret: 1, barre: { fret: 1, fromString: 5, toString: 1 } },
 };
 
 export function getChordFingering(
@@ -68,16 +78,26 @@ export function getChordFingering(
   customChords?: Record<string, ChordFingering>
 ): ChordFingering | null {
   const clean = chordName.trim();
+  if (!clean) return null;
   
   // 1. Check custom fingerings for this song first
   if (customChords && customChords[clean]) {
     return customChords[clean];
   }
 
-  // 2. Check standard database
+  // 2. Direct match in database
   if (CHORD_DATABASE[clean]) return CHORD_DATABASE[clean];
 
-  // Try alias: G#m -> Abm or vice versa
+  // 3. Normalize Maj7 / M7 -> maj7
+  const normalized = clean
+    .replace(/Maj7/g, 'maj7')
+    .replace(/M7/g, 'maj7')
+    .replace(/maj7/g, 'maj7');
+
+  if (customChords && customChords[normalized]) return customChords[normalized];
+  if (CHORD_DATABASE[normalized]) return CHORD_DATABASE[normalized];
+
+  // 4. Try aliases (enharmonic equivalents)
   const aliasMap: Record<string, string> = {
     'Db': 'C#',
     'D#m': 'Ebm',
@@ -85,12 +105,30 @@ export function getChordFingering(
     'Ab': 'G#',
     'A#': 'Bb',
     'A#m': 'Bbm',
+    'G#': 'Ab',
+    'G#m': 'Abm',
   };
 
   if (aliasMap[clean]) {
     const alias = aliasMap[clean];
     if (customChords && customChords[alias]) return customChords[alias];
     if (CHORD_DATABASE[alias]) return CHORD_DATABASE[alias];
+  }
+
+  // 5. Slash chord fallback: e.g. "C/E" -> try "C" if full slash not found
+  if (clean.includes('/')) {
+    const [base] = clean.split('/');
+    if (customChords && customChords[base]) return customChords[base];
+    if (CHORD_DATABASE[base]) return CHORD_DATABASE[base];
+  }
+
+  // 6. Base chord fallback for complex extensions (e.g. "Cadd9" -> "C", "Am9" -> "Am7" -> "Am")
+  const rootMatch = clean.match(/^([A-G][b#]?)(m|maj|min)?/i);
+  if (rootMatch) {
+    const rootBase = rootMatch[0];
+    if (CHORD_DATABASE[rootBase]) return CHORD_DATABASE[rootBase];
+    const rootOnly = rootMatch[1];
+    if (CHORD_DATABASE[rootOnly]) return CHORD_DATABASE[rootOnly];
   }
 
   return null;

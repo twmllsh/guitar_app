@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Volume2 } from 'lucide-react';
 import { Song, ParsedLine } from '../types';
 import { parseChordPro } from '../utils/chordProParser';
 import { transposeChordProContent, extractUniqueChords, transposeSingleChord, getPlayKey } from '../utils/chordUtils';
+import { playChordByName } from '../utils/guitarAudio';
 
 interface Props {
   song: Song;
@@ -22,6 +24,8 @@ export const ChordViewer: React.FC<Props> = ({
   onOpenKeySaveModal,
   onOpenTabModal,
 }) => {
+  const [playingChord, setPlayingChord] = useState<string | null>(null);
+
   // Transpose content before parsing
   const transposedContent = React.useMemo(() => {
     return transposeChordProContent(song.content, semitones);
@@ -34,6 +38,14 @@ export const ChordViewer: React.FC<Props> = ({
   const uniqueChords = React.useMemo(() => {
     return extractUniqueChords(transposedContent);
   }, [transposedContent]);
+
+  const handlePlayChord = (chord: string) => {
+    setPlayingChord(chord);
+    playChordByName(chord, song.customChords);
+    setTimeout(() => {
+      setPlayingChord((prev) => (prev === chord ? null : prev));
+    }, 1200);
+  };
 
   return (
     <div className="w-full max-w-5xl mx-auto pb-32">
@@ -101,20 +113,41 @@ export const ChordViewer: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Unique Chords Quick Bar */}
+        {/* Unique Chords Quick Bar with Sound Buttons */}
         {uniqueChords.length > 0 && (
           <div className="mt-4 pt-3 border-t border-zinc-800/60 flex items-center gap-2 flex-wrap">
             <span className="text-xs text-zinc-500 font-medium mr-1">사용 코드:</span>
-            {uniqueChords.map((chord) => (
-              <button
-                key={chord}
-                onClick={() => onChordClick(chord)}
-                title="클릭하여 운지법 확인"
-                className="px-2.5 py-1 text-xs font-semibold bg-zinc-800 hover:bg-emerald-600/20 hover:border-emerald-500 hover:text-emerald-300 border border-zinc-700 text-emerald-400 rounded-md transition-colors"
-              >
-                {chord}
-              </button>
-            ))}
+            {uniqueChords.map((chord) => {
+              const isPlaying = playingChord === chord;
+              return (
+                <div
+                  key={chord}
+                  className="inline-flex items-center bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700 rounded-lg overflow-hidden transition-all shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => onChordClick(chord)}
+                    title={`클릭하여 [${chord}] 운지법 확인`}
+                    className="px-2 py-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                  >
+                    {chord}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayChord(chord);
+                    }}
+                    title={`[${chord}] 기타 코드 소리 듣기`}
+                    className={`px-1.5 py-1 text-zinc-400 hover:text-amber-400 border-l border-zinc-700/60 transition-colors ${
+                      isPlaying ? 'text-amber-400 bg-amber-400/20' : ''
+                    }`}
+                  >
+                    <Volume2 className={`w-3 h-3 ${isPlaying ? 'animate-pulse text-amber-400' : ''}`} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -131,6 +164,8 @@ export const ChordViewer: React.FC<Props> = ({
             key={lineIndex} 
             line={line} 
             onChordClick={onChordClick} 
+            onPlayChord={handlePlayChord}
+            playingChord={playingChord}
           />
         ))}
       </div>
@@ -138,10 +173,12 @@ export const ChordViewer: React.FC<Props> = ({
   );
 };
 
-const LineRenderer: React.FC<{ line: ParsedLine; onChordClick: (c: string) => void }> = ({
-  line,
-  onChordClick,
-}) => {
+const LineRenderer: React.FC<{
+  line: ParsedLine;
+  onChordClick: (c: string) => void;
+  onPlayChord: (c: string) => void;
+  playingChord: string | null;
+}> = ({ line, onChordClick, onPlayChord, playingChord }) => {
   if (line.type === 'empty') {
     return <div className="h-6" />;
   }
@@ -157,29 +194,50 @@ const LineRenderer: React.FC<{ line: ParsedLine; onChordClick: (c: string) => vo
   if (line.type === 'lyric' && line.items) {
     return (
       <div className="flex flex-wrap items-end my-1 leading-relaxed">
-        {line.items.map((item, itemIdx) => (
-          <div key={itemIdx} className="inline-flex flex-col group relative mr-0.5">
-            {/* Chord Line (Top) */}
-            <div className="h-6 select-none flex items-center">
-              {item.chord ? (
-                <button
-                  type="button"
-                  onClick={() => onChordClick(item.chord!)}
-                  className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer px-0.5 text-[0.88em] tracking-tight transition-transform active:scale-95"
-                >
-                  {item.chord}
-                </button>
-              ) : (
-                <span className="invisible text-[0.88em]">-</span>
-              )}
-            </div>
+        {line.items.map((item, itemIdx) => {
+          const isPlaying = Boolean(item.chord && playingChord === item.chord);
+          return (
+            <div key={itemIdx} className="inline-flex flex-col group relative mr-0.5">
+              {/* Chord Line (Top) */}
+              <div className="h-6 select-none flex items-center">
+                {item.chord ? (
+                  <div className="inline-flex items-center gap-0.5 group/chord">
+                    <button
+                      type="button"
+                      onClick={() => onChordClick(item.chord!)}
+                      className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer px-0.5 text-[0.88em] tracking-tight transition-transform active:scale-95"
+                      title={`[${item.chord}] 운지법 확인`}
+                    >
+                      {item.chord}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayChord(item.chord!);
+                      }}
+                      className={`p-0.5 rounded transition-all active:scale-90 ${
+                        isPlaying
+                          ? 'text-amber-400 bg-amber-400/20 scale-110'
+                          : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-800/80 opacity-70 group-hover/chord:opacity-100'
+                      }`}
+                      title={`[${item.chord}] 기타 코드 소리 듣기`}
+                    >
+                      <Volume2 className={`w-2.5 h-2.5 ${isPlaying ? 'animate-pulse text-amber-400' : ''}`} />
+                    </button>
+                  </div>
+                ) : (
+                  <span className="invisible text-[0.88em]">-</span>
+                )}
+              </div>
 
-            {/* Lyric Line (Bottom) */}
-            <div className="text-zinc-100 whitespace-pre font-normal tracking-wide">
-              {item.lyric || '\u00A0'}
+              {/* Lyric Line (Bottom) */}
+              <div className="text-zinc-100 whitespace-pre font-normal tracking-wide">
+                {item.lyric || '\u00A0'}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Edit2, RotateCcw, Check, Sparkles, Sliders, Replace, Music } from 'lucide-react';
+import { X, Edit2, RotateCcw, Check, Sparkles, Sliders, Replace, Music, Volume2 } from 'lucide-react';
 import { ChordFingering } from '../types';
 import { getChordFingering, createDefaultFingering } from '../utils/chordDiagrams';
 import { getDiatonicChords } from '../utils/chordUtils';
+import { playChordFingering, playGuitarString } from '../utils/guitarAudio';
 
 interface Props {
   chordName: string | null;
@@ -36,6 +37,14 @@ export const ChordDiagramModal: React.FC<Props> = ({
   );
   const [replacementName, setReplacementName] = useState(chordName);
   const [showReplaceForm, setShowReplaceForm] = useState(false);
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+
+  const handlePlayChordSound = () => {
+    setIsPlayingSound(true);
+    const fretsToPlay = isEditing ? editableFrets : currentFingering.frets;
+    playChordFingering(fretsToPlay, 28, 0.45);
+    setTimeout(() => setIsPlayingSound(false), 1200);
+  };
 
   const diatonic = useMemo(() => {
     return getDiatonicChords(currentKey);
@@ -67,6 +76,7 @@ export const ChordDiagramModal: React.FC<Props> = ({
     const nextFrets = [...editableFrets];
     if (nextFrets[stringIndex] === 'x') {
       nextFrets[stringIndex] = 0;
+      playGuitarString(stringIndex, 0);
     } else {
       nextFrets[stringIndex] = 'x';
     }
@@ -82,8 +92,10 @@ export const ChordDiagramModal: React.FC<Props> = ({
     if (nextFrets[stringIndex] === actualFret) {
       // Toggle off to open string
       nextFrets[stringIndex] = 0;
+      playGuitarString(stringIndex, 0);
     } else {
       nextFrets[stringIndex] = actualFret;
+      playGuitarString(stringIndex, actualFret);
     }
     setEditableFrets(nextFrets);
   };
@@ -144,9 +156,28 @@ export const ChordDiagramModal: React.FC<Props> = ({
             )}
           </div>
           <h3 className="text-2xl font-bold text-white tracking-wide">{chordName}</h3>
+          
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <button
+              type="button"
+              onClick={handlePlayChordSound}
+              className={`px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 ${
+                isPlayingSound
+                  ? 'bg-amber-500 text-zinc-950 scale-105'
+                  : isEditing
+                  ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50'
+                  : 'bg-zinc-700/80 hover:bg-zinc-700 text-white border border-zinc-600'
+              }`}
+              title={isEditing ? '수정 중인 운지법의 소리를 듣습니다' : '이 코드의 기타 소리를 듣습니다'}
+            >
+              <Volume2 className={`w-3.5 h-3.5 ${isPlayingSound ? 'animate-pulse text-zinc-950' : 'text-amber-400'}`} />
+              <span>{isEditing ? '수정된 소리 들어보기' : '코드 소리 듣기'}</span>
+            </button>
+          </div>
+
           {isEditing && (
-            <p className="text-xs text-amber-300 mt-1">
-              💡 프렛 칸이나 줄 머리를 터치하여 원하는 운지로 수정하세요.
+            <p className="text-xs text-amber-300 mt-2">
+              💡 프렛 칸이나 줄 머리를 터치하면 각 줄의 소리가 나며 원하는 운지로 수정됩니다.
             </p>
           )}
         </div>
@@ -447,27 +478,42 @@ export const ChordDiagramModal: React.FC<Props> = ({
               )}
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
               <button
-                onClick={() => {
-                  // Cancel edits
-                  const f = getChordFingering(chordName, customChords) || createDefaultFingering(chordName);
-                  setEditableFrets([...f.frets]);
-                  setEditableBaseFret(f.baseFret || 1);
-                  setIsEditing(false);
-                }}
-                className="flex-1 py-2 px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded-xl text-xs font-medium transition-colors"
+                type="button"
+                onClick={handlePlayChordSound}
+                className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow transition-all active:scale-98 ${
+                  isPlayingSound
+                    ? 'bg-amber-500 text-zinc-950 scale-[1.02]'
+                    : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50'
+                }`}
               >
-                취소
+                <Volume2 className={`w-4 h-4 ${isPlayingSound ? 'animate-pulse text-zinc-950' : 'text-amber-400'}`} />
+                <span>수정된 소리 들어보기 (기타 스트럼)</span>
               </button>
 
-              <button
-                onClick={handleSave}
-                className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow transition-all active:scale-98"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>이 곡에 운지 저장</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    // Cancel edits
+                    const f = getChordFingering(chordName, customChords) || createDefaultFingering(chordName);
+                    setEditableFrets([...f.frets]);
+                    setEditableBaseFret(f.baseFret || 1);
+                    setIsEditing(false);
+                  }}
+                  className="flex-1 py-2 px-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded-xl text-xs font-medium transition-colors"
+                >
+                  취소
+                </button>
+
+                <button
+                  onClick={handleSave}
+                  className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow transition-all active:scale-98"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>이 곡에 운지 저장</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
