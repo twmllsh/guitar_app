@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Song, ChordFingering } from './types';
 import { DEFAULT_SONGS } from './data/defaultSongs';
 import { ChordViewer } from './components/ChordViewer';
+import { TabViewer } from './components/TabViewer';
 import { SongEditor } from './components/SongEditor';
 import { AutoScroller } from './components/AutoScroller';
 import { SongListSidebar } from './components/SongListSidebar';
@@ -360,6 +361,7 @@ export const App: React.FC = () => {
         onExportSongs={handleExportSongs}
         onImportSongs={(file) => requireAuth(() => handleImportSongs(file))}
         onOpenPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
+        onOpenTabModal={() => setIsTabModalOpen(true)}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -482,15 +484,22 @@ export const App: React.FC = () => {
               />
             ) : (
               <>
-                <ChordViewer
-                  song={activeSong}
-                  semitones={semitones}
-                  fontSize={fontSize}
-                  isTwoColumn={isTwoColumn}
-                  onChordClick={(chord) => setSelectedChord(chord)}
-                  onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
-                  onOpenTabModal={() => setIsTabModalOpen(true)}
-                />
+                {activeSong.sheetType === 'tab' ? (
+                  <TabViewer
+                    song={activeSong}
+                    onOpenTabModal={() => setIsTabModalOpen(true)}
+                  />
+                ) : (
+                  <ChordViewer
+                    song={activeSong}
+                    semitones={semitones}
+                    fontSize={fontSize}
+                    isTwoColumn={isTwoColumn}
+                    onChordClick={(chord) => setSelectedChord(chord)}
+                    onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
+                    onOpenTabModal={() => setIsTabModalOpen(true)}
+                  />
+                )}
 
                 {/* Google AdSense / Sponsor Banner Slot */}
                 <AdBanner slot="guitar-sheet-bottom" className="max-w-2xl mx-auto" />
@@ -503,8 +512,8 @@ export const App: React.FC = () => {
           )}
         </main>
 
-        {/* Floating Auto-Scroller & Performance Controls (Only in View Mode) */}
-        {!isEditing && activeSong && (
+        {/* Floating Auto-Scroller & Performance Controls (Only in View Mode for Chord Sheets) */}
+        {!isEditing && activeSong && activeSong.sheetType !== 'tab' && (
           <AutoScroller
             scrollContainerRef={mainScrollRef}
             semitones={semitones}
@@ -577,6 +586,7 @@ export const App: React.FC = () => {
         onClose={() => setIsTabModalOpen(false)}
         initialTitle={activeSong?.title}
         initialArtist={activeSong?.artist}
+        initialAlphaTex={activeSong?.tabData}
       />
     </div>
   );

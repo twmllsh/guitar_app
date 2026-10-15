@@ -25,6 +25,7 @@ interface Props {
   onExportSongs: () => void;
   onImportSongs: (file: File) => void;
   onOpenPrivacyPolicy: () => void;
+  onOpenTabModal?: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -40,16 +41,30 @@ export const SongListSidebar: React.FC<Props> = ({
   onExportSongs,
   onImportSongs,
   onOpenPrivacyPolicy,
+  onOpenTabModal,
   isOpen,
   onClose,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'chord' | 'tab'>('all');
 
-  const filteredSongs = songs.filter(
-    (s) =>
+  const filteredSongs = songs.filter((s) => {
+    const matchesSearch =
       s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.artist.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      s.artist.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (filterType === 'tab') {
+      return s.sheetType === 'tab';
+    } else if (filterType === 'chord') {
+      return s.sheetType !== 'tab';
+    }
+    return true;
+  });
+
+  const chordCount = songs.filter((s) => s.sheetType !== 'tab').length;
+  const tabCount = songs.filter((s) => s.sheetType === 'tab').length;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,18 +117,31 @@ export const SongListSidebar: React.FC<Props> = ({
               onAiNewSong();
               if (window.innerWidth < 768) onClose();
             }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-purple-500/20 transition-all active:scale-98"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-purple-500/20 transition-all active:scale-98"
           >
-            <Sparkles className="w-4 h-4 text-white animate-pulse" />
-            <span>AI 악보 자동 생성 (3초 완성)</span>
+            <Sparkles className="w-4 h-4 text-white" />
+            <span>AI 코드 악보 자동 생성</span>
           </button>
+
+          {onOpenTabModal && (
+            <button
+              onClick={() => {
+                onOpenTabModal();
+                if (window.innerWidth < 768) onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl text-xs shadow-md shadow-orange-500/20 transition-all active:scale-98"
+            >
+              <Music className="w-4 h-4 text-white" />
+              <span>🎸 TAB 악보 스캐너 & 연주기</span>
+            </button>
+          )}
 
           <button
             onClick={() => {
               onNewSong();
               if (window.innerWidth < 768) onClose();
             }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-xl text-xs border border-zinc-700/80 transition-all active:scale-98"
+            className="w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 font-medium rounded-xl text-xs border border-zinc-700/80 transition-all active:scale-98"
           >
             <Plus className="w-3.5 h-3.5 text-emerald-400" />
             <span>직접 빈 악보 만들기</span>
@@ -134,10 +162,56 @@ export const SongListSidebar: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Sheet Type Category Filter Tabs */}
+        <div className="px-3 pb-2">
+          <div className="grid grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+            <button
+              type="button"
+              onClick={() => setFilterType('all')}
+              className={`py-1 rounded-lg text-[11px] font-semibold transition-colors ${
+                filterType === 'all'
+                  ? 'bg-zinc-800 text-white shadow-xs'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              전체 ({songs.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType('chord')}
+              className={`py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1 ${
+                filterType === 'chord'
+                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 shadow-xs'
+                  : 'text-zinc-400 hover:text-emerald-400'
+              }`}
+            >
+              <span>코드</span>
+              <span className="text-[10px] opacity-80">({chordCount})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType('tab')}
+              className={`py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center justify-center gap-1 ${
+                filterType === 'tab'
+                  ? 'bg-amber-950 text-amber-300 border border-amber-800 shadow-xs'
+                  : 'text-zinc-400 hover:text-amber-400'
+              }`}
+            >
+              <span>TAB</span>
+              <span className="text-[10px] opacity-80">({tabCount})</span>
+            </button>
+          </div>
+        </div>
+
         {/* Songs List */}
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1.5 scrollbar-thin">
-          <div className="text-[11px] font-semibold text-zinc-500 px-2 py-1">
-            내 악보 목록 ({filteredSongs.length})
+          <div className="text-[11px] font-semibold text-zinc-500 px-2 py-1 flex items-center justify-between">
+            <span>악보 목록 ({filteredSongs.length})</span>
+            {filterType !== 'all' && (
+              <span className="text-[10px] text-zinc-400">
+                {filterType === 'tab' ? 'TAB 악보만 표시 중' : '코드 악보만 표시 중'}
+              </span>
+            )}
           </div>
 
           {filteredSongs.length === 0 ? (
@@ -147,6 +221,7 @@ export const SongListSidebar: React.FC<Props> = ({
           ) : (
             filteredSongs.map((song) => {
               const isActive = song.id === activeSongId;
+              const isTab = song.sheetType === 'tab';
               return (
                 <div
                   key={song.id}
@@ -156,15 +231,28 @@ export const SongListSidebar: React.FC<Props> = ({
                   }}
                   className={`group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all border ${
                     isActive
-                      ? 'bg-zinc-800/90 border-emerald-500/50 shadow-sm'
+                      ? isTab
+                        ? 'bg-amber-950/40 border-amber-500/60 shadow-sm'
+                        : 'bg-zinc-800/90 border-emerald-500/50 shadow-sm'
                       : 'border-transparent hover:bg-zinc-800/40 text-zinc-300'
                   }`}
                 >
                   <div className="min-w-0 flex-1 pr-2">
-                    <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-zinc-200'}`}>
-                      {song.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-1.5">
+                      {isTab ? (
+                        <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded text-[9px] font-extrabold uppercase shrink-0">
+                          TAB
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[9px] font-bold uppercase shrink-0">
+                          코드
+                        </span>
+                      )}
+                      <p className={`text-sm font-semibold truncate ${isActive ? 'text-white' : 'text-zinc-200'}`}>
+                        {song.title}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 pl-0.5">
                       <span className="text-xs text-zinc-400 truncate">
                         {song.artist}
                       </span>

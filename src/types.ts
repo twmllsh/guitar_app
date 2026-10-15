@@ -6,9 +6,10 @@ export interface Song {
   capo?: number;
   tempo?: number;
   timeSignature?: string;
-  content: string; // ChordPro format
+  content: string; // ChordPro format (or AlphaTex if sheetType === 'tab')
   updatedAt: number;
   customChords?: Record<string, ChordFingering>;
+  sheetType?: 'chord' | 'tab'; // 'chord' = Chord Sheet, 'tab' = TAB & Notation Sheet
   tabType?: 'alphatex' | 'gp' | 'musicxml';
   tabData?: string; // AlphaTex text or base64 GuitarPro
 }

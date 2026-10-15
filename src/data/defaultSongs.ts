@@ -382,5 +382,87 @@ Here in [A]heaven`
 [F]잠시라도 그대[Em7]를 잊을 [Dm7]수 없던 나인[G7]걸
 [C]다음 세상에[G/B]도 우리 꼭 [Am7]다시 만나요
 [F]그때까지 [G]부디 안[C]녕`
+  },
+  {
+    id: 'song-tab-romance',
+    title: 'Romance de Amor (로망스)',
+    artist: '스페인 민요 / Narciso Yepes',
+    originalKey: 'Em',
+    capo: 0,
+    tempo: 105,
+    sheetType: 'tab',
+    tabType: 'alphatex',
+    updatedAt: Date.now(),
+    tabData: `\\title "Romance de Amor (로망스)"
+\\artist "Narciso Yepes (스페인 민요)"
+\\tempo 105
+\\ts 3 4
+.
+\\track "Acoustic Guitar" "acoustic_guitar_nylon"
+
+// 마디 1 (Em)
+:8 (7.1 0.6) 0.2 0.3 7.1 0.2 0.3 7.1 0.2 0.3 |
+// 마디 2
+7.1 0.2 0.3 5.1 0.2 0.3 3.1 0.2 0.3 |
+// 마디 3
+(3.1 0.6) 0.2 0.3 2.1 0.2 0.3 0.1 0.2 0.3 |
+// 마디 4
+0.1 0.2 0.3 3.1 0.2 0.3 7.1 0.2 0.3 |
+// 마디 5
+(12.1 0.6) 0.2 0.3 12.1 0.2 0.3 12.1 0.2 0.3 |
+// 마디 6
+12.1 0.2 0.3 10.1 0.2 0.3 8.1 0.2 0.3 |
+// 마디 7 (Am)
+(8.1 0.5) 0.2 0.3 7.1 0.2 0.3 5.1 0.2 0.3 |
+// 마디 8
+5.1 0.2 0.3 7.1 0.2 0.3 8.1 0.2 0.3 |
+// 마디 9 (B7)
+(7.1 2.5) 0.2 0.3 8.1 0.2 0.3 7.1 0.2 0.3 |
+// 마디 10
+(11.1 1.4) 0.2 0.3 8.1 0.2 0.3 7.1 0.2 0.3 |
+// 마디 11 (Em)
+(7.1 0.6) 0.2 0.3 5.1 0.2 0.3 3.1 0.2 0.3 |
+// 마디 12
+3.1 0.2 0.3 2.1 0.2 0.3 0.1 0.2 0.3 |
+`,
+    content: `{title: Romance de Amor (로망스)}
+{artist: 스페인 민요 / Narciso Yepes}
+{key: Em}
+{tempo: 105}
+# 클래식 기타 명곡 로망스 타브 악보입니다.`
+  },
+  {
+    id: 'song-tab-hotel-california',
+    title: 'Hotel California (Intro Riff)',
+    artist: 'Eagles',
+    originalKey: 'Bm',
+    capo: 7,
+    tempo: 75,
+    sheetType: 'tab',
+    tabType: 'alphatex',
+    updatedAt: Date.now(),
+    tabData: `\\title "Hotel California (Intro Riff)"
+\\artist "Eagles"
+\\tempo 75
+\\capo 7
+\\ts 4 4
+.
+\\track "12-String Acoustic" "acoustic_guitar_steel"
+
+// 마디 1 (Bm / Capo 7: Em 모양)
+:8 0.5 2.4 0.3 0.2 :16 0.1 2.1 :8 0.1 0.2 |
+// 마디 2 (F#7)
+:8 2.6 1.4 0.3 2.2 :16 0.1 2.1 :8 0.1 2.2 |
+// 마디 3 (A)
+:8 0.5 2.4 2.3 2.2 :16 0.1 2.1 :8 0.1 2.2 |
+// 마디 4 (E)
+:8 0.6 2.5 2.4 1.3 :16 0.2 0.1 :8 0.2 1.3 |
+`,
+    content: `{title: Hotel California (Intro Riff)}
+{artist: Eagles}
+{key: Bm}
+{capo: 7}
+{tempo: 75}
+# 카포 7프렛을 장착하고 연주하는 이글스 Hotel California 인트로 타브 악보입니다.`
   }
 ];
