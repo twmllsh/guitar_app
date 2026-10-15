@@ -9,7 +9,9 @@ import {
   getPlayKey,
   getSoundingKey
 } from '../utils/chordUtils';
-import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown, Music, KeyRound } from 'lucide-react';
+import { Wand2, Save, Undo2, Plus, Sparkles, HelpCircle, ArrowUpDown, Music, KeyRound, Bot } from 'lucide-react';
+import { AiSongGeneratorModal } from './AiSongGeneratorModal';
+import { GeneratedSong } from '../utils/aiGenerator';
 
 interface Props {
   song: Song;
@@ -25,7 +27,8 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
   const [tempo, setTempo] = useState<number | undefined>(song.tempo);
   const [content, setContent] = useState(song.content);
 
-  // Smart Converter Modal State
+  // AI & Smart Converter Modal State
+  const [showAiModal, setShowAiModal] = useState(false);
   const [showConverter, setShowConverter] = useState(false);
   const [rawTwoLineText, setRawTwoLineText] = useState('');
 
@@ -133,6 +136,15 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
     setContent(reverted);
   };
 
+  const handleApplyAiGenerated = (generated: GeneratedSong) => {
+    if (generated.title) setTitle(generated.title);
+    if (generated.artist) setArtist(generated.artist);
+    if (generated.originalKey) setOriginalKey(generated.originalKey);
+    if (typeof generated.capo === 'number') setCapo(generated.capo);
+    if (generated.tempo) setTempo(generated.tempo);
+    if (generated.chordProContent) setContent(generated.chordProContent);
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto pb-24">
       {/* Top Header & Save Actions */}
@@ -140,20 +152,32 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
         <div>
           <h2 className="text-2xl font-bold text-white">악보 편집</h2>
           <p className="text-sm text-zinc-400 mt-1">
-            ChordPro 형식으로 작성하거나 가사 윗줄 코드를 자동으로 변환하세요.
+            ChordPro 형식으로 작성하거나 AI로 악보를 자동 생성하세요.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* AI Auto Generator Button */}
           <button
-            onClick={() => setShowConverter(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 rounded-xl text-sm font-semibold transition-colors"
+            type="button"
+            onClick={() => setShowAiModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-purple-600/30 to-emerald-600/30 hover:from-purple-600/40 hover:to-emerald-600/40 text-purple-200 border border-purple-500/50 rounded-xl text-sm font-bold shadow-md shadow-purple-500/10 transition-all active:scale-95"
           >
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span>일반 악보 자동 변환</span>
+            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+            <span>AI 악보 자동 생성</span>
           </button>
 
           <button
+            type="button"
+            onClick={() => setShowConverter(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-xl text-sm font-medium transition-colors"
+          >
+            <Wand2 className="w-4 h-4 text-zinc-400" />
+            <span>일반 악보 변환</span>
+          </button>
+
+          <button
+            type="button"
             onClick={onCancel}
             className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-sm font-medium transition-colors"
           >
@@ -161,6 +185,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
           </button>
 
           <button
+            type="button"
             onClick={handleSave}
             className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-500/20 transition-all active:scale-95"
           >
@@ -416,6 +441,15 @@ G       D/F#    Em7      C
           </div>
         </div>
       )}
+
+      {/* AI Song Sheet Generator Modal */}
+      <AiSongGeneratorModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onApply={handleApplyAiGenerated}
+        initialTitle={title}
+        initialArtist={artist}
+      />
     </div>
   );
 };

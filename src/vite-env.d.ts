@@ -3,4 +3,5 @@
 declare const __APP_ENV__: {
   ADMIN_ID: string;
   ADMIN_PASSWORD: string;
+  GEMINI_API_KEY: string;
 };

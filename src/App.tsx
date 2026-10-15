@@ -9,10 +9,12 @@ import { ChordDiagramModal } from './components/ChordDiagramModal';
 import { KeySaveModal } from './components/KeySaveModal';
 import { LoginModal } from './components/LoginModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
+import { AiSongGeneratorModal } from './components/AiSongGeneratorModal';
 import { AdBanner } from './components/AdBanner';
 import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
 import { updateSongSeo } from './utils/seo';
 import { isAuthenticated, logout } from './utils/auth';
+import { GeneratedSong } from './utils/aiGenerator';
 import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock, Info } from 'lucide-react';
 
 const STORAGE_KEY = 'guitar_chord_app_songs_v1';
@@ -31,8 +33,9 @@ export const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  // Privacy Policy & About Modal
+  // Privacy Policy & AI Generation Modals
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+  const [isSidebarAiModalOpen, setIsSidebarAiModalOpen] = useState<boolean>(false);
 
   // Load songs from localStorage and merge new default presets seamlessly
   const [songs, setSongs] = useState<Song[]>(() => {
@@ -151,6 +154,22 @@ export const App: React.FC = () => {
     setSongs([newSong, ...songs]);
     setActiveSongId(newSong.id);
     setIsEditing(true);
+  };
+
+  const handleApplySidebarAiGenerated = (generated: GeneratedSong) => {
+    const newSong: Song = {
+      id: `song-${Date.now()}`,
+      title: generated.title || '새 악보',
+      artist: generated.artist || '아티스트 미상',
+      originalKey: generated.originalKey || 'C',
+      capo: generated.capo || 0,
+      tempo: generated.tempo,
+      content: generated.chordProContent,
+      updatedAt: Date.now(),
+    };
+    setSongs([newSong, ...songs]);
+    setActiveSongId(newSong.id);
+    setIsEditing(false);
   };
 
   const handleDeleteSong = (id: string) => {
@@ -333,6 +352,7 @@ export const App: React.FC = () => {
         activeSongId={activeSongId}
         onSelectSong={handleSelectSong}
         onNewSong={() => requireAuth(handleNewSong)}
+        onAiNewSong={() => requireAuth(() => setIsSidebarAiModalOpen(true))}
         onDeleteSong={(id) => requireAuth(() => handleDeleteSong(id))}
         onDuplicateSong={(song) => requireAuth(() => handleDuplicateSong(song))}
         onExportSongs={handleExportSongs}
@@ -529,6 +549,13 @@ export const App: React.FC = () => {
       <PrivacyPolicyModal
         isOpen={isPrivacyModalOpen}
         onClose={() => setIsPrivacyModalOpen(false)}
+      />
+
+      {/* AI Song Generator Modal from Sidebar */}
+      <AiSongGeneratorModal
+        isOpen={isSidebarAiModalOpen}
+        onClose={() => setIsSidebarAiModalOpen(false)}
+        onApply={handleApplySidebarAiGenerated}
       />
     </div>
   );

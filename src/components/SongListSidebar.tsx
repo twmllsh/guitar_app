@@ -10,7 +10,8 @@ import {
   Upload, 
   X,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
   activeSongId: string;
   onSelectSong: (id: string) => void;
   onNewSong: () => void;
+  onAiNewSong: () => void;
   onDeleteSong: (id: string) => void;
   onDuplicateSong: (song: Song) => void;
   onExportSongs: () => void;
@@ -32,6 +34,7 @@ export const SongListSidebar: React.FC<Props> = ({
   activeSongId,
   onSelectSong,
   onNewSong,
+  onAiNewSong,
   onDeleteSong,
   onDuplicateSong,
   onExportSongs,
@@ -92,17 +95,28 @@ export const SongListSidebar: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* Action: New Song Button */}
-        <div className="p-3">
+        {/* Action: New Song & AI Generation Buttons */}
+        <div className="p-3 space-y-2">
+          <button
+            onClick={() => {
+              onAiNewSong();
+              if (window.innerWidth < 768) onClose();
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-purple-500/20 transition-all active:scale-98"
+          >
+            <Sparkles className="w-4 h-4 text-white animate-pulse" />
+            <span>AI 악보 자동 생성 (3초 완성)</span>
+          </button>
+
           <button
             onClick={() => {
               onNewSong();
               if (window.innerWidth < 768) onClose();
             }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-500/10 transition-all active:scale-98"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold rounded-xl text-xs border border-zinc-700/80 transition-all active:scale-98"
           >
-            <Plus className="w-4 h-4" />
-            <span>새 악보 추가</span>
+            <Plus className="w-3.5 h-3.5 text-emerald-400" />
+            <span>직접 빈 악보 만들기</span>
           </button>
         </div>
 
