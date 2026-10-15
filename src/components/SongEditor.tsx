@@ -32,20 +32,36 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const insertChord = (chordSymbol: string) => {
-    if (!textareaRef.current) return;
     const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+    if (!textarea) return;
+
+    // Ensure textarea is focused
+    textarea.focus();
+
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
     const textToInsert = chordSymbol.startsWith('[') ? chordSymbol : `[${chordSymbol}]`;
+    const currentScrollTop = textarea.scrollTop;
+    const newCursorPos = start + textToInsert.length;
 
-    const newContent = content.substring(0, start) + textToInsert + content.substring(end);
-    setContent(newContent);
+    if (typeof textarea.setRangeText === 'function') {
+      textarea.setRangeText(textToInsert, start, end, 'end');
+      textarea.selectionStart = newCursorPos;
+      textarea.selectionEnd = newCursorPos;
+      setContent(textarea.value);
+    } else {
+      const newContent = content.substring(0, start) + textToInsert + content.substring(end);
+      setContent(newContent);
+    }
 
-    // Restore cursor position after inserted chord
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
-    }, 0);
+    // Preserve exact cursor position right after the inserted chord and prevent scroll jumping
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+        textareaRef.current.scrollTop = currentScrollTop;
+      }
+    });
   };
 
   const handleSave = () => {
@@ -253,6 +269,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
             <button
               key={chord}
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => insertChord(chord)}
               title={`${chord} 코드 삽입`}
               className="px-2.5 py-1 text-xs font-bold bg-zinc-900 hover:bg-emerald-500 hover:text-white border border-emerald-500/40 text-emerald-300 rounded-lg whitespace-nowrap transition-all active:scale-95 shadow-xs"
@@ -263,6 +280,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
 
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => insertChord('[]')}
             title="빈 코드 브래킷 삽입"
             className="px-2 py-1 text-xs font-bold bg-zinc-900 hover:bg-zinc-700 text-zinc-400 border border-zinc-700 rounded-lg whitespace-nowrap"
@@ -277,6 +295,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
             <span className="text-[11px] text-zinc-400 font-medium">전체 조옮김:</span>
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleBatchTranspose(-1)}
               title="본문 전체 코드 반음 내리기 (-1)"
               className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
@@ -285,6 +304,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
             </button>
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleBatchTranspose(1)}
               title="본문 전체 코드 반음 올리기 (+1)"
               className="px-1.5 py-0.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 rounded"
@@ -301,6 +321,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
             <button
               key={chord}
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => insertChord(chord)}
               title={`${chord} 코드 삽입`}
               className="px-2 py-0.5 text-[11px] font-semibold bg-zinc-900/90 hover:bg-indigo-600 hover:text-white border border-zinc-700 text-zinc-300 rounded-md whitespace-nowrap transition-colors"
@@ -317,6 +338,7 @@ export const SongEditor: React.FC<Props> = ({ song, onSave, onCancel }) => {
                 <button
                   key={chord}
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => insertChord(chord)}
                   className="px-2 py-0.5 text-[11px] font-semibold bg-zinc-900/90 hover:bg-amber-600 hover:text-white border border-amber-600/40 text-amber-300 rounded-md whitespace-nowrap transition-colors"
                 >

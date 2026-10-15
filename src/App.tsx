@@ -7,13 +7,20 @@ import { AutoScroller } from './components/AutoScroller';
 import { SongListSidebar } from './components/SongListSidebar';
 import { ChordDiagramModal } from './components/ChordDiagramModal';
 import { KeySaveModal } from './components/KeySaveModal';
+import { LoginModal } from './components/LoginModal';
 import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
-import { Menu, Edit3, Eye, Maximize2, Minimize2 } from 'lucide-react';
+import { isAuthenticated, logout } from './utils/auth';
+import { Menu, Edit3, Eye, Maximize2, Minimize2, LogIn, LogOut, ShieldCheck, Lock } from 'lucide-react';
 
 const STORAGE_KEY = 'guitar_chord_app_songs_v1';
 const ACTIVE_SONG_KEY = 'guitar_chord_app_active_song_id';
 
 export const App: React.FC = () => {
+  // Authentication State
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => isAuthenticated());
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
   // Load songs from localStorage
   const [songs, setSongs] = useState<Song[]>(() => {
     try {
@@ -42,6 +49,15 @@ export const App: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [isKeySaveModalOpen, setIsKeySaveModalOpen] = useState<boolean>(false);
   const mainScrollRef = useRef<HTMLElement>(null);
+
+  const requireAuth = (action: () => void) => {
+    if (isLoggedIn) {
+      action();
+    } else {
+      setPendingAction(() => action);
+      setIsLoginModalOpen(true);
+    }
+  };
 
   // Sync songs to localStorage
   useEffect(() => {
@@ -262,11 +278,11 @@ export const App: React.FC = () => {
         songs={songs}
         activeSongId={activeSongId}
         onSelectSong={handleSelectSong}
-        onNewSong={handleNewSong}
-        onDeleteSong={handleDeleteSong}
-        onDuplicateSong={handleDuplicateSong}
+        onNewSong={() => requireAuth(handleNewSong)}
+        onDeleteSong={(id) => requireAuth(() => handleDeleteSong(id))}
+        onDuplicateSong={(song) => requireAuth(() => handleDuplicateSong(song))}
         onExportSongs={handleExportSongs}
-        onImportSongs={handleImportSongs}
+        onImportSongs={(file) => requireAuth(() => handleImportSongs(file))}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -295,18 +311,58 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* View / Edit Mode Toggle */}
+            {/* View / Edit Mode Toggle (Requires Login to Edit) */}
             <button
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (isEditing) {
+                  setIsEditing(false);
+                } else {
+                  requireAuth(() => setIsEditing(true));
+                }
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 isEditing
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                   : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700'
               }`}
             >
-              {isEditing ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-              <span>{isEditing ? '악보 보기' : '편집하기'}</span>
+              {isEditing ? (
+                <Eye className="w-3.5 h-3.5" />
+              ) : isLoggedIn ? (
+                <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span>{isEditing ? '악보 보기' : isLoggedIn ? '편집하기' : '편집하기'}</span>
             </button>
+
+            {/* Login / Logout Indicator */}
+            {isLoggedIn ? (
+              <div className="flex items-center gap-1 pl-2 pr-1 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline font-semibold text-[11px]">편집권한</span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsLoggedIn(false);
+                    setIsEditing(false);
+                  }}
+                  title="로그아웃"
+                  className="p-1 hover:text-red-400 rounded-lg hover:bg-zinc-800 transition-colors ml-0.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                title="편집자 로그인"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-xl text-xs font-medium transition-all"
+              >
+                <LogIn className="w-3.5 h-3.5 text-zinc-400" />
+                <span className="hidden sm:inline">로그인</span>
+              </button>
+            )}
 
             {/* Fullscreen Button */}
             <button
@@ -335,7 +391,7 @@ export const App: React.FC = () => {
                 fontSize={fontSize}
                 isTwoColumn={isTwoColumn}
                 onChordClick={(chord) => setSelectedChord(chord)}
-                onOpenKeySaveModal={() => setIsKeySaveModalOpen(true)}
+                onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
               />
             )
           ) : (
@@ -355,7 +411,7 @@ export const App: React.FC = () => {
             onChangeFontSize={(delta) => setFontSize((prev) => Math.min(28, Math.max(12, prev + delta)))}
             isTwoColumn={isTwoColumn}
             onToggleTwoColumn={() => setIsTwoColumn((prev) => !prev)}
-            onOpenKeySaveModal={() => setIsKeySaveModalOpen(true)}
+            onOpenKeySaveModal={() => requireAuth(() => setIsKeySaveModalOpen(true))}
           />
         )}
       </div>
@@ -366,9 +422,9 @@ export const App: React.FC = () => {
         currentKey={activeSong ? transposeSingleChord(activeSong.originalKey || 'C', semitones) : 'C'}
         customChords={activeSong?.customChords}
         onClose={() => setSelectedChord(null)}
-        onSaveFingering={handleSaveCustomFingering}
-        onResetFingering={handleResetCustomFingering}
-        onReplaceChordName={handleReplaceChordName}
+        onSaveFingering={(chord, fingering) => requireAuth(() => handleSaveCustomFingering(chord, fingering))}
+        onResetFingering={(chord) => requireAuth(() => handleResetCustomFingering(chord))}
+        onReplaceChordName={(oldC, newC) => requireAuth(() => handleReplaceChordName(oldC, newC))}
       />
 
       {/* Key Change & Save Modal */}
@@ -382,6 +438,23 @@ export const App: React.FC = () => {
           onConfirmSaveAsNew={handleConfirmSaveAsNewKey}
         />
       )}
+
+      {/* Editor Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          setPendingAction(null);
+        }}
+        onSuccess={() => {
+          setIsLoggedIn(true);
+          setIsLoginModalOpen(false);
+          if (pendingAction) {
+            pendingAction();
+            setPendingAction(null);
+          }
+        }}
+      />
     </div>
   );
 };
