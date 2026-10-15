@@ -11,6 +11,7 @@ import { getChordFingering, createDefaultFingering } from './chordDiagrams';
 export const OPEN_STRING_MIDI = [40, 45, 50, 55, 59, 64];
 
 let sharedAudioContext: AudioContext | null = null;
+const chordBufferCache = new Map<string, AudioBuffer>();
 
 export function getAudioContext(): AudioContext {
   if (!sharedAudioContext) {
@@ -24,82 +25,92 @@ export function getAudioContext(): AudioContext {
 }
 
 /**
- * Generates an authentic plucked string audio buffer using Karplus-Strong physical modeling.
- * Produces warm, natural acoustic guitar string vibrations.
+ * Generates single plucked string samples using the Karplus-Strong physical modeling algorithm.
+ * Models a realistic steel/nylon guitar string:
+ * - Triangle/pluck impulse + smoothed excitation
+ * - Proper circular delay buffer (no NaN glitching)
+ * - Frequency-dependent damping (higher strings decay faster, lower strings resonate)
  */
-function createPluckedStringAudioBuffer(
-  ctx: AudioContext,
+function generateStringWaveform(
+  sampleRate: number,
   midiNote: number,
-  stringIndex: number,
-  duration = 2.2
-): AudioBuffer {
-  const sampleRate = ctx.sampleRate;
+  stringIdx: number,
+  duration = 2.4
+): Float32Array {
   const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
   const period = Math.max(2, Math.round(sampleRate / freq));
   const numSamples = Math.round(sampleRate * duration);
-  const buffer = ctx.createBuffer(1, numSamples, sampleRate);
-  const data = buffer.getChannelData(0);
+  const buf = new Float32Array(numSamples);
 
-  // Initial noise burst simulating pick excitation
+  // Pluck excitation: shaped pick attack + soft noise
   for (let i = 0; i < period; i++) {
-    data[i] = Math.random() * 2 - 1;
-  }
-  // Lowpass smoothing on initial noise to simulate plectrum / fingertip contact
-  for (let i = 1; i < period; i++) {
-    data[i] = (data[i] + data[i - 1]) * 0.5;
+    const x = i / period;
+    // Triangle pluck displacement
+    const pickShape = x < 0.25 ? x / 0.25 : (1 - x) / 0.75;
+    const noise = Math.random() * 2 - 1;
+    buf[i] = pickShape * 0.7 + noise * 0.3;
   }
 
-  // Karplus-Strong feedback loop with string-dependent loss factor
-  // Thicker lower strings resonate longer, higher strings decay slightly faster
-  const decay = 0.993 - stringIndex * 0.0012;
+  // 2-pass lowpass smoothing on excitation to soften the initial pick transient
+  for (let p = 0; p < 2; p++) {
+    for (let i = 1; i < period; i++) {
+      buf[i] = (buf[i] + buf[i - 1]) * 0.5;
+    }
+  }
+
+  // Karplus-Strong feedback loop
+  // Thicker lower strings ring longer (~2.5s), thin higher strings decay slightly faster (~1.8s)
+  const decay = 0.9955 - stringIdx * 0.0008;
   for (let i = period; i < numSamples; i++) {
-    data[i] = (data[i - period] + data[i - period - 1]) * 0.5 * decay;
+    const p1 = buf[i - period];
+    // Circular buffer index wrap: when i - period - 1 < 0, use the last sample of previous cycle
+    const p2 = i - period - 1 >= 0 ? buf[i - period - 1] : buf[period - 1];
+    buf[i] = (p1 + p2) * 0.5 * decay;
   }
 
-  return buffer;
+  return buf;
 }
 
 /**
- * Plays a single guitar note at a given MIDI note number.
+ * Plays an AudioBuffer with realistic acoustic guitar body resonance filters.
  */
-export function playGuitarNote(
-  midiNote: number,
-  stringIndex = 2,
-  startTime?: number,
-  volume = 0.4
-) {
+function playBuffer(ctx: AudioContext, buffer: AudioBuffer, volume = 0.5) {
   try {
-    const ctx = getAudioContext();
-    const t = startTime !== undefined ? startTime : ctx.currentTime;
-    const buffer = createPluckedStringAudioBuffer(ctx, midiNote, stringIndex);
-
+    const t = ctx.currentTime;
     const source = ctx.createBufferSource();
     source.buffer = buffer;
 
-    // Body resonance acoustic filter
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(5500, t);
-    filter.frequency.exponentialRampToValueAtTime(1400, t + 1.2);
+    // 1. Highpass filter to eliminate sub-audio DC thump
+    const hpFilter = ctx.createBiquadFilter();
+    hpFilter.type = 'highpass';
+    hpFilter.frequency.value = 75;
 
-    // Warmth shelf
-    const bassBooster = ctx.createBiquadFilter();
-    bassBooster.type = 'peaking';
-    bassBooster.frequency.value = 180;
-    bassBooster.gain.value = 3;
+    // 2. Peaking filter for acoustic guitar body soundboard resonance (~200Hz)
+    const bodyFilter = ctx.createBiquadFilter();
+    bodyFilter.type = 'peaking';
+    bodyFilter.frequency.value = 210;
+    bodyFilter.gain.value = 3.5;
+    bodyFilter.Q.value = 1.2;
 
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(volume, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.1);
+    // 3. Gentle lowpass to keep the tone warm and natural
+    const lpFilter = ctx.createBiquadFilter();
+    lpFilter.type = 'lowpass';
+    lpFilter.frequency.setValueAtTime(6500, t);
+    lpFilter.frequency.exponentialRampToValueAtTime(1500, t + 1.2);
 
-    source.connect(filter);
-    filter.connect(bassBooster);
-    bassBooster.connect(gain);
-    gain.connect(ctx.destination);
+    // 4. Output gain
+    const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(volume, t);
+
+    source.connect(hpFilter);
+    hpFilter.connect(bodyFilter);
+    bodyFilter.connect(lpFilter);
+    lpFilter.connect(gainNode);
+    gainNode.connect(ctx.destination);
 
     source.start(t);
   } catch (err) {
-    console.warn('Guitar audio playback error:', err);
+    console.warn('Audio playBuffer error:', err);
   }
 }
 
@@ -113,33 +124,63 @@ export function playGuitarString(
   volume = 0.45
 ) {
   if (fret === 'x' || typeof fret !== 'number') return;
-  const midiNote = OPEN_STRING_MIDI[stringIndex] + fret;
-  playGuitarNote(midiNote, stringIndex, undefined, volume);
+  try {
+    const ctx = getAudioContext();
+    const midiNote = OPEN_STRING_MIDI[stringIndex] + fret;
+    const wave = generateStringWaveform(ctx.sampleRate, midiNote, stringIndex, 2.2);
+
+    const buffer = ctx.createBuffer(1, wave.length, ctx.sampleRate);
+    buffer.getChannelData(0).set(wave);
+
+    playBuffer(ctx, buffer, volume);
+  } catch (err) {
+    console.warn('playGuitarString error:', err);
+  }
 }
 
 /**
  * Plays a realistic acoustic guitar chord strum from frets array [6th, 5th, 4th, 3rd, 2nd, 1st].
- * Staggers the string plucks by strumSpeedMs (default 26ms) to create authentic downstroke strumming.
+ * Pre-mixes all 6 strings into a single composite AudioBuffer with authentic downstroke stagger.
  */
 export function playChordFingering(
   frets: (number | 'x')[],
-  strumSpeedMs = 26,
-  volume = 0.38
+  strumSpeedMs = 28,
+  volume = 0.42
 ) {
   try {
     const ctx = getAudioContext();
-    let currentT = ctx.currentTime + 0.005;
-    const strumSec = strumSpeedMs / 1000;
+    const cacheKey = frets.join(',');
 
-    for (let s = 0; s < 6; s++) {
-      const fret = frets[s];
-      if (fret === 'x' || typeof fret !== 'number') continue;
-      const midiNote = OPEN_STRING_MIDI[s] + fret;
-      playGuitarNote(midiNote, s, currentT, volume);
-      currentT += strumSec;
+    // Check cache first for 0ms latency
+    let buffer = chordBufferCache.get(cacheKey);
+    if (!buffer) {
+      const sampleRate = ctx.sampleRate;
+      const totalDuration = 2.5;
+      const totalSamples = Math.round(sampleRate * totalDuration);
+      const mixed = new Float32Array(totalSamples);
+      let offsetMs = 0;
+
+      for (let s = 0; s < 6; s++) {
+        const fret = frets[s];
+        if (fret === 'x' || typeof fret !== 'number') continue;
+        const midi = OPEN_STRING_MIDI[s] + fret;
+        const stringWave = generateStringWaveform(sampleRate, midi, s, 2.3);
+
+        const startSample = Math.round((offsetMs / 1000) * sampleRate);
+        for (let j = 0; j < stringWave.length && startSample + j < totalSamples; j++) {
+          mixed[startSample + j] += stringWave[j] * 0.28;
+        }
+        offsetMs += strumSpeedMs;
+      }
+
+      buffer = ctx.createBuffer(1, totalSamples, sampleRate);
+      buffer.getChannelData(0).set(mixed);
+      chordBufferCache.set(cacheKey, buffer);
     }
+
+    playBuffer(ctx, buffer, volume);
   } catch (err) {
-    console.warn('Chord strum playback error:', err);
+    console.warn('playChordFingering error:', err);
   }
 }
 
@@ -150,10 +191,10 @@ export function playChordFingering(
 export function playChordByName(
   chordName: string,
   customChords?: Record<string, ChordFingering>,
-  volume = 0.38
+  volume = 0.42
 ) {
   const fingering = getChordFingering(chordName, customChords) || createDefaultFingering(chordName);
   if (fingering && fingering.frets) {
-    playChordFingering(fingering.frets, 26, volume);
+    playChordFingering(fingering.frets, 28, volume);
   }
 }
