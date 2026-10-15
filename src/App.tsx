@@ -3,6 +3,7 @@ import { Song, ChordFingering } from './types';
 import { DEFAULT_SONGS } from './data/defaultSongs';
 import { ChordViewer } from './components/ChordViewer';
 import { TabViewer } from './components/TabViewer';
+import { TabEditor } from './components/TabEditor';
 import { SongEditor } from './components/SongEditor';
 import { AutoScroller } from './components/AutoScroller';
 import { SongListSidebar } from './components/SongListSidebar';
@@ -12,6 +13,7 @@ import { LoginModal } from './components/LoginModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { AiSongGeneratorModal } from './components/AiSongGeneratorModal';
 import { TabPlayerModal } from './components/TabPlayerModal';
+import { NewSongModal } from './components/NewSongModal';
 import { AdBanner } from './components/AdBanner';
 import { transposeChordProContent, transposeSingleChord } from './utils/chordUtils';
 import { updateSongSeo } from './utils/seo';
@@ -35,10 +37,11 @@ export const App: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
-  // Privacy Policy, AI Generation & TAB Player Modals
+  // Modals
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
   const [isSidebarAiModalOpen, setIsSidebarAiModalOpen] = useState<boolean>(false);
   const [isTabModalOpen, setIsTabModalOpen] = useState<boolean>(false);
+  const [isNewSongModalOpen, setIsNewSongModalOpen] = useState<boolean>(false);
 
   // Load songs from localStorage and merge new default presets seamlessly
   const [songs, setSongs] = useState<Song[]>(() => {
@@ -144,16 +147,7 @@ export const App: React.FC = () => {
     setIsEditing(false);
   };
 
-  const handleNewSong = () => {
-    const newSong: Song = {
-      id: `song-${Date.now()}`,
-      title: '새로운 악보',
-      artist: '아티스트',
-      originalKey: 'C',
-      capo: 0,
-      updatedAt: Date.now(),
-      content: `{title: 새로운 악보}\n{artist: 아티스트}\n{key: C}\n\n[C]새로운 [G]노래의 [Am]가사를 입력하[F]세요`
-    };
+  const handleCreateNewSong = (newSong: Song) => {
     setSongs([newSong, ...songs]);
     setActiveSongId(newSong.id);
     setIsEditing(true);
@@ -354,7 +348,7 @@ export const App: React.FC = () => {
         songs={songs}
         activeSongId={activeSongId}
         onSelectSong={handleSelectSong}
-        onNewSong={() => requireAuth(handleNewSong)}
+        onNewSong={() => requireAuth(() => setIsNewSongModalOpen(true))}
         onAiNewSong={() => requireAuth(() => setIsSidebarAiModalOpen(true))}
         onDeleteSong={(id) => requireAuth(() => handleDeleteSong(id))}
         onDuplicateSong={(song) => requireAuth(() => handleDuplicateSong(song))}
@@ -377,12 +371,21 @@ export const App: React.FC = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="truncate max-w-[200px] sm:max-w-md">
+            <div className="flex items-center gap-2 truncate max-w-[200px] sm:max-w-md">
+              {activeSong && (
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase shrink-0 ${
+                  activeSong.sheetType === 'tab'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                }`}>
+                  {activeSong.sheetType === 'tab' ? 'TAB' : '코드'}
+                </span>
+              )}
               <span className="text-sm font-bold text-white truncate">
                 {activeSong ? activeSong.title : '악보를 선택하세요'}
               </span>
               {activeSong && (
-                <span className="text-xs text-zinc-400 ml-2 hidden sm:inline">
+                <span className="text-xs text-zinc-400 truncate hidden sm:inline">
                   • {activeSong.artist}
                 </span>
               )}
@@ -390,16 +393,6 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* TAB Sheet & Playback Player Button */}
-            <button
-              onClick={() => setIsTabModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 shadow-sm transition-all"
-              title="타브(TAB) 악보 뷰어, 실제 소리 연주, 사진/PDF 악보 스캐너"
-            >
-              <Music2 className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>TAB 악보 & 연주</span>
-            </button>
-
             {/* View / Edit Mode Toggle (Requires Login to Edit) */}
             <button
               onClick={() => {
@@ -416,13 +409,20 @@ export const App: React.FC = () => {
               }`}
             >
               {isEditing ? (
-                <Eye className="w-3.5 h-3.5" />
-              ) : isLoggedIn ? (
-                <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
+                <>
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>악보 보기</span>
+                </>
               ) : (
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <>
+                  {isLoggedIn ? (
+                    <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  )}
+                  <span>{activeSong?.sheetType === 'tab' ? 'TAB 편집하기' : '코드 편집하기'}</span>
+                </>
               )}
-              <span>{isEditing ? '악보 보기' : isLoggedIn ? '편집하기' : '편집하기'}</span>
             </button>
 
             {/* Login / Logout Indicator */}
@@ -477,16 +477,25 @@ export const App: React.FC = () => {
         <main ref={mainScrollRef as any} className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 relative scrollbar-thin">
           {activeSong ? (
             isEditing ? (
-              <SongEditor
-                song={activeSong}
-                onSave={handleSaveSong}
-                onCancel={() => setIsEditing(false)}
-              />
+              activeSong.sheetType === 'tab' ? (
+                <TabEditor
+                  song={activeSong}
+                  onSave={handleSaveSong}
+                  onCancel={() => setIsEditing(false)}
+                />
+              ) : (
+                <SongEditor
+                  song={activeSong}
+                  onSave={handleSaveSong}
+                  onCancel={() => setIsEditing(false)}
+                />
+              )
             ) : (
               <>
                 {activeSong.sheetType === 'tab' ? (
                   <TabViewer
                     song={activeSong}
+                    onStartEdit={() => requireAuth(() => setIsEditing(true))}
                     onOpenTabModal={() => setIsTabModalOpen(true)}
                   />
                 ) : (
@@ -573,11 +582,13 @@ export const App: React.FC = () => {
         onClose={() => setIsPrivacyModalOpen(false)}
       />
 
-      {/* AI Song Generator Modal from Sidebar */}
-      <AiSongGeneratorModal
-        isOpen={isSidebarAiModalOpen}
-        onClose={() => setIsSidebarAiModalOpen(false)}
-        onApply={handleApplySidebarAiGenerated}
+      {/* New Song Wizard Modal (Chord & TAB) */}
+      <NewSongModal
+        isOpen={isNewSongModalOpen}
+        onClose={() => setIsNewSongModalOpen(false)}
+        onCreateSong={handleCreateNewSong}
+        isLoggedIn={isLoggedIn}
+        onRequireLogin={() => requireAuth(() => {})}
       />
 
       {/* Interactive TAB Sheet Music & Audio Player Modal */}

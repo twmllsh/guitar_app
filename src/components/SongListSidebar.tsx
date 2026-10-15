@@ -110,41 +110,17 @@ export const SongListSidebar: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* Action: New Song & AI Generation Buttons */}
-        <div className="p-3 space-y-2">
-          <button
-            onClick={() => {
-              onAiNewSong();
-              if (window.innerWidth < 768) onClose();
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-purple-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-purple-500/20 transition-all active:scale-98"
-          >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span>AI 코드 악보 자동 생성</span>
-          </button>
-
-          {onOpenTabModal && (
-            <button
-              onClick={() => {
-                onOpenTabModal();
-                if (window.innerWidth < 768) onClose();
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl text-xs shadow-md shadow-orange-500/20 transition-all active:scale-98"
-            >
-              <Music className="w-4 h-4 text-white" />
-              <span>🎸 TAB 악보 스캐너 & 연주기</span>
-            </button>
-          )}
-
+        {/* Action: Single Unified New Song Button */}
+        <div className="p-3">
           <button
             onClick={() => {
               onNewSong();
               if (window.innerWidth < 768) onClose();
             }}
-            className="w-full flex items-center justify-center gap-2 py-1.5 px-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 font-medium rounded-xl text-xs border border-zinc-700/80 transition-all active:scale-98"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-950/40 transition-all active:scale-98"
           >
-            <Plus className="w-3.5 h-3.5 text-emerald-400" />
-            <span>직접 빈 악보 만들기</span>
+            <Plus className="w-4 h-4 text-white" />
+            <span>새 악보 만들기 (코드 / TAB)</span>
           </button>
         </div>
 

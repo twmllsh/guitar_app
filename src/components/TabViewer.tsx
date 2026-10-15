@@ -22,12 +22,14 @@ interface Props {
   song: Song;
   onUpdateSong?: (updated: Song) => void;
   onOpenTabModal: () => void;
+  onStartEdit?: () => void;
 }
 
 export const TabViewer: React.FC<Props> = ({
   song,
   onUpdateSong,
-  onOpenTabModal
+  onOpenTabModal,
+  onStartEdit,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<alphaTab.AlphaTabApi | null>(null);
@@ -91,8 +93,23 @@ export const TabViewer: React.FC<Props> = ({
           setEndTime(args.endTime);
         });
 
-        // Load content
-        api.tex(tabSource);
+        // Load content based on type (GP binary vs AlphaTex)
+        if (song.tabType === 'gp' && song.tabData) {
+          try {
+            const binaryString = window.atob(song.tabData);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            api.load(bytes);
+          } catch (gpErr) {
+            console.error('Failed to parse GP binary data:', gpErr);
+            api.tex(DEFAULT_ALPHATEX_SAMPLE);
+          }
+        } else {
+          api.tex(tabSource);
+        }
       } catch (e) {
         console.error('Failed to init AlphaTab inline:', e);
       }
@@ -166,14 +183,16 @@ export const TabViewer: React.FC<Props> = ({
 
         {/* Quick Tools */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onOpenTabModal}
-            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>사진/PDF 스캔 & 편집</span>
-          </button>
+          {onStartEdit && (
+            <button
+              type="button"
+              onClick={onStartEdit}
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>기타프로 편집기로 수정</span>
+            </button>
+          )}
         </div>
       </div>
 
