@@ -43,6 +43,7 @@ export const TabViewer: React.FC<Props> = ({
   const [volume, setVolume] = useState<number>(1.0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [staveProfile, setStaveProfile] = useState<'Tab' | 'ScoreTab'>('Tab');
+  const [rhythmMode, setRhythmMode] = useState<'bars' | 'hidden'>('bars');
 
   const tabSource = song.tabData || DEFAULT_ALPHATEX_SAMPLE;
 
@@ -74,7 +75,14 @@ export const TabViewer: React.FC<Props> = ({
           display: {
             staveProfile: staveProfile,
             layoutMode: 'Page',
-          }
+          },
+          notation: {
+            rhythmMode:
+              rhythmMode === 'bars'
+                ? alphaTab.TabRhythmMode.ShowWithBars
+                : alphaTab.TabRhythmMode.Hidden,
+            rhythmHeight: 25,
+          },
         };
 
         api = new alphaTab.AlphaTabApi(containerRef.current, settings);
@@ -145,6 +153,18 @@ export const TabViewer: React.FC<Props> = ({
       apiRef.current.render();
     }
   }, [staveProfile]);
+
+  // Update rhythm mode (음표 꼬리/기둥 표시)
+  useEffect(() => {
+    if (apiRef.current) {
+      apiRef.current.settings.notation.rhythmMode =
+        rhythmMode === 'bars'
+          ? alphaTab.TabRhythmMode.ShowWithBars
+          : alphaTab.TabRhythmMode.Hidden;
+      apiRef.current.updateSettings();
+      apiRef.current.render();
+    }
+  }, [rhythmMode]);
 
   const handlePlayPause = () => {
     if (!apiRef.current) return;
@@ -304,6 +324,34 @@ export const TabViewer: React.FC<Props> = ({
               }`}
             >
               5선보+TAB
+            </button>
+          </div>
+
+          {/* Rhythm / Note Tails Toggle */}
+          <div className="flex items-center bg-zinc-800 rounded-lg p-0.5 border border-zinc-700 text-xs" title="타브악보 음표 꼬리/기둥(박자 빔) 표시 설정">
+            <button
+              type="button"
+              onClick={() => setRhythmMode('bars')}
+              className={`px-2 py-1 rounded text-[11px] transition-colors ${
+                rhythmMode === 'bars'
+                  ? 'bg-amber-500 text-zinc-950 font-bold'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+              title="음표 꼬리 및 기둥(박자 빔) 표시 (기타프로 스타일)"
+            >
+              음표 꼬리/빔
+            </button>
+            <button
+              type="button"
+              onClick={() => setRhythmMode('hidden')}
+              className={`px-2 py-1 rounded text-[11px] transition-colors ${
+                rhythmMode === 'hidden'
+                  ? 'bg-amber-500 text-zinc-950 font-bold'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+              title="음표 꼬리 숨김 (숫자만 간결하게 표시)"
+            >
+              숫자만
             </button>
           </div>
 

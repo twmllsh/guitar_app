@@ -18,7 +18,7 @@ export const DEFAULT_ALPHATEX_SAMPLE = `\\title "Romance de Amor (스페인 로�
 \\track "Acoustic Guitar" "acoustic_guitar_nylon"
 
 // 마디 1
-:8 7.1 0.2 0.3 7.1 0.2 0.3 7.1 0.2 0.3 |
+:8{tu 3} 7.1 0.2 0.3 7.1 0.2 0.3 7.1 0.2 0.3 |
 // 마디 2
 7.1 0.2 0.3 5.1 0.2 0.3 3.1 0.2 0.3 |
 // 마디 3

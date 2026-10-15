@@ -119,7 +119,11 @@ export const TabPlayerModal: React.FC<Props> = ({
           display: {
             staveProfile: staveProfile,
             layoutMode: 'Page',
-          }
+          },
+          notation: {
+            rhythmMode: alphaTab.TabRhythmMode.ShowWithBars,
+            rhythmHeight: 25,
+          },
         };
 
         const api = new alphaTab.AlphaTabApi(containerRef.current, settings);
