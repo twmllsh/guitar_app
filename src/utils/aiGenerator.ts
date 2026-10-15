@@ -91,8 +91,8 @@ export async function generateSongSheet(options: GenerateOptions): Promise<Gener
 가수/아티스트: ${options.artist || '미상'}
 ${options.additionalNotes ? `추가 요청사항: ${options.additionalNotes}` : ''}`;
 
-  // Try gemini-2.5-flash first, fallback to gemini-1.5-flash
-  const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+  // Try latest supported models: gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash-lite
+  const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
   let lastError: any = null;
 
   for (const model of models) {
